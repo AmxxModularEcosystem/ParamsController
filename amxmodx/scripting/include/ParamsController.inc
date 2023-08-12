@@ -187,7 +187,7 @@ stock T_Param:ParamsController_Param_FromNativeParams(const iParamOffset) {
     new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
     get_string(iParamOffset + ParamArg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
     
-    new bol:bRequired = !!get_param(iParamOffset + ParamArg_bRequired);
+    new bool:bRequired = !!get_param(iParamOffset + ParamArg_bRequired);
 
     return ParamsController_Param_Construct(sKey, sParamTypeName, bRequired);
 }
