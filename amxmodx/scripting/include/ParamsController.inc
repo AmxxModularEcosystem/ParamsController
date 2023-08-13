@@ -208,7 +208,7 @@ stock Array:ParamsController_Param_ListFromNativeParams(const iParamOffset, cons
         aAppend = ArrayCreate(1, 1);
     }
 
-    new iCount = (iParamsCount - iParamOffset) / E_NativeParam;
+    new iCount = (iParamsCount - iParamOffset + 1) / E_NativeParam;
     if (iCount < 1) {
         return aAppend;
     }
