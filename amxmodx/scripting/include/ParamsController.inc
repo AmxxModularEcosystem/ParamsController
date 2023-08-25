@@ -164,7 +164,14 @@ native T_Param:ParamsController_Param_Construct(const sKey[], const sParamTypeNa
  *
  * @return  Валидный trie-хендлер с прочитанными параметрами. Если был передан параметр tAppend, то будет возвращён тот же хендлер
  */
-native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj, &Trie:tAppend = Invalid_Trie, &E_ParamsReadErrorType:iErrType, sErrParamName[], const iErrParamNameLen = 0);
+native Trie:ParamsController_Param_ReadList(
+    const Array:aParams,
+    const JSON:jObj,
+    &Trie:tAppend = Invalid_Trie,
+    &E_ParamsReadErrorType:iErrType = ParamsReadError_None,
+    sErrParamName[] = "",
+    const iErrParamNameLen = 0
+);
 
 /**
  * Создание параметра из параметров натива
