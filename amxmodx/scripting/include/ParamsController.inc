@@ -12,7 +12,7 @@
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
 
-#define _PARAMS_CONTROLLER_VERSION "1.0.0-beta.1"
+#define _PARAMS_CONTROLLER_VERSION "1.0.0-beta.2"
 stock const PARAMS_CONTROLLER_VERSION[] = _PARAMS_CONTROLLER_VERSION;
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 
@@ -22,7 +22,7 @@ enum T_ParamType { Invalid_ParamType = INVALID_HANDLE }
 enum _:E_NativeParam {
     ParamArg_sKey,
     ParamArg_sParamTypeName,
-    ParamArg_bRequired
+    ParamArg_bRequired,
 }
 
 enum E_ParamsReadErrorType {
@@ -194,7 +194,7 @@ stock T_Param:ParamsController_Param_FromNativeParams(const iParamOffset) {
     new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
     get_string(iParamOffset + ParamArg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
     
-    new bool:bRequired = !!get_param(iParamOffset + ParamArg_bRequired);
+    new bool:bRequired = bool:get_param_byref(iParamOffset + ParamArg_bRequired);
 
     return ParamsController_Param_Construct(sKey, sParamTypeName, bRequired);
 }

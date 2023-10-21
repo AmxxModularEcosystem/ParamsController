@@ -68,8 +68,12 @@ Trie:Param_ReadList(
         }
 
         if (!json_object_has_value(jObj, Param[Param_Key])) {
-            iErrType = ParamsReadError_RequiredParamNotPresented;
-            return tAppend;
+            if (Param[Param_Required]) {
+                iErrType = ParamsReadError_RequiredParamNotPresented;
+                return tAppend;
+            }
+
+            continue;
         }
 
         new JSON:jValue = json_object_get_value(jObj, Param[Param_Key]);
