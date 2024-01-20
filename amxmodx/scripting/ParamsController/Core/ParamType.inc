@@ -64,7 +64,7 @@ ParamType_SetReadCallback(const T_ParamType:iParamType, const sCallback[], const
     ParamType__Get(iParamType, ParamType);
 
     // bool:(const JSON:jValue, const Trie:tParams, const sParamKey[])
-    ParamType[ParamType_ReadCallback] = CreateOneForward(PluginId, sCallback, FP_CELL, FP_CELL, FP_STRING);
+    ParamType[ParamType_ReadCallback] = CreateOneForward(PluginId, sCallback, FP_CELL, FP_CELL, FP_STRING, FP_STRING);
     if (ParamType[ParamType_ReadCallback] == INVALID_HANDLE) {
         ThrowError("Can't create callback by '%s' func of #%d plugin.", sCallback, PluginId);
         return;
@@ -86,13 +86,19 @@ static ResetCurrentParam() {
     g_sCurrentParamName[0] = 0;
 }
 
-bool:ParamType_Read(const T_ParamType:iParamType, const JSON:jValue, const Trie:tParams, const sParamKey[]) {
+bool:ParamType_Read(
+    const T_ParamType:iParamType,
+    const JSON:jValue,
+    const Trie:tParams,
+    const sParamKey[],
+    const sParamTag[] = NULL_STRING
+) {
     new ParamType[S_ParamType];
     ParamType__Get(iParamType, ParamType);
     
     SetCurrentParam(tParams, sParamKey);
     new bool:bReturned;
-    ExecuteForward(ParamType[ParamType_ReadCallback], bReturned, jValue, tParams, sParamKey);
+    ExecuteForward(ParamType[ParamType_ReadCallback], bReturned, jValue, tParams, sParamKey, sParamTag);
     ResetCurrentParam();
 
     return bReturned;

@@ -64,11 +64,23 @@ T_Param:@_Param_Construct() {
 
     new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
     get_string(Arg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
+
+    new i = strfind(sParamTypeName, PARAMS_CONTROLLER_TYPE_TAG_DELIMITER);
+    if (i > 0) {
+        sParamTypeName[i] = 0; // EOS
+    }
     new T_ParamType:iParamType = ParamType_Find(sParamTypeName, .bOrFail=true);
     
     new bool:bRequired = !!get_param(Arg_bRequired);
 
-    return Param_Construct(sKey, iParamType, bRequired);
+    new sParamTag[PARAM_TYPE_TAG_MAX_LEN];
+    if (i > 0) {
+        copy(sParamTag, charsmax(sParamTag), sParamTypeName[i + 1]);
+    } else {
+        sParamTag[0] = 0;
+    }
+
+    return Param_Construct(sKey, iParamType, bRequired, sParamTag);
 }
 
 // native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj, &Trie:tAppend = Invalid_Trie, &E_ParamsReadErrorType:iErrType, sErrParamName[], const iErrParamNameLen = 0);

@@ -14,6 +14,7 @@ enum _:S_Param {
     Param_Key[PARAM_KEY_MAX_LEN],
     T_ParamType:Param_Type,
     bool:Param_Required,
+    Param_Tag[PARAM_TYPE_TAG_MAX_LEN],
 }
 
 static Array:g_aParams;
@@ -24,12 +25,18 @@ Param_Init() {
     g_aParams = ArrayCreate(S_Param, 1);
 }
 
-T_Param:Param_Construct(const sKey[], const T_ParamType:iType, const bool:bRequired = true) {
+T_Param:Param_Construct(
+    const sKey[],
+    const T_ParamType:iType,
+    const bool:bRequired = true,
+    const sTag[] = NULL_STRING
+) {
     new Param[S_Param];
 
     copy(Param[Param_Key], charsmax(Param[Param_Key]), sKey);
     Param[Param_Type] = iType;
     Param[Param_Required] = bRequired;
+    copy(Param[Param_Tag], charsmax(Param[Param_Tag]), sTag);
 
     return T_Param:ArrayPushArray(g_aParams, Param);
 }
@@ -42,7 +49,7 @@ bool:Param_Read(const T_Param:iParam, const JSON:jValue, const Trie:tParams) {
     new Param[S_Param];
     Param__Get(iParam, Param);
     
-    return ParamType_Read(Param[Param_Type], jValue, tParams, Param[Param_Key]);
+    return ParamType_Read(Param[Param_Type], jValue, tParams, Param[Param_Key], Param[Param_Tag]);
 }
 
 Trie:Param_ReadList(

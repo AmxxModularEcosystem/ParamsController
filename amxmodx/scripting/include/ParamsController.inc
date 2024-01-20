@@ -9,12 +9,15 @@
 #define PARAM_KEY_MAX_LEN 64
 #define PARAM_VALUE_MAX_LEN 512
 #define PARAM_TYPE_READ_CALLBACK_MAX_LEN 64
+#define PARAM_TYPE_TAG_MAX_LEN 64
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
 
-#define _PARAMS_CONTROLLER_VERSION "1.0.0-beta.2"
+#define _PARAMS_CONTROLLER_VERSION "1.0.0-beta.3"
 stock const PARAMS_CONTROLLER_VERSION[] = _PARAMS_CONTROLLER_VERSION;
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
+
+stock const PARAMS_CONTROLLER_TYPE_TAG_DELIMITER[] = ":";
 
 enum T_Param { Invalid_Param = INVALID_HANDLE }
 enum T_ParamType { Invalid_ParamType = INVALID_HANDLE }
@@ -109,7 +112,7 @@ native T_ParamType:ParamsController_ParamType_Register(const sParamTypeName[]);
  * @param   iParamType  Хендлер типа параметров, для которого будет установлен колбека
  * @param   sCallback   Название функции-колбека
  *
- * @note    Сигнатура колбека: bool:(const JSON:jValue, const Trie:tParams, const sParamKey[])
+ * @note    Сигнатура колбека: bool:(const JSON:jValue, const Trie:tParams, const sParamKey[], const sParamTag[])
  *              jValue: JSON-значение читаемого параметра
  *              tParams: гарантированно валидный хендлер Trie-структуры
  *              sParamKey: ключ читаемого параметра
@@ -164,14 +167,7 @@ native T_Param:ParamsController_Param_Construct(const sKey[], const sParamTypeNa
  *
  * @return  Валидный trie-хендлер с прочитанными параметрами. Если был передан параметр tAppend, то будет возвращён тот же хендлер
  */
-native Trie:ParamsController_Param_ReadList(
-    const Array:aParams,
-    const JSON:jObj,
-    &Trie:tAppend = Invalid_Trie,
-    &E_ParamsReadErrorType:iErrType = ParamsReadError_None,
-    sErrParamName[] = "",
-    const iErrParamNameLen = 0
-);
+native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj, &Trie:tAppend = Invalid_Trie, &E_ParamsReadErrorType:iErrType = ParamsReadError_None,sErrParamName[] = "", const iErrParamNameLen = 0);
 
 /**
  * Создание параметра из параметров натива
