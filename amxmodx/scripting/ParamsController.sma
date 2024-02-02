@@ -11,6 +11,8 @@ public stock const PluginVersion[] = _PARAMS_CONTROLLER_VERSION;
 public stock const PluginAuthor[] = "ArKaNeMaN";
 public stock const PluginURL[] = "t.me/arkanaplugins";
 
+static bool:g_bPluginInited = false;
+
 public plugin_precache() {
     register_plugin(PluginName, PluginVersion, PluginAuthor);
     register_library(PARAMS_CONTROLLER_LIBRARY);
@@ -19,6 +21,7 @@ public plugin_precache() {
 
 PluginInit() {
     CallOnce();
+    g_bPluginInited = true;
 
     RegisterForwards();
     Param_Init();
@@ -39,6 +42,10 @@ PluginInit() {
 
 RegisterForwards() {
     Forwards_Init("ParamsController");
+}
+
+bool:IsPluginInited() {
+    return g_bPluginInited;
 }
 
 #include "ParamsController/Core/Natives"

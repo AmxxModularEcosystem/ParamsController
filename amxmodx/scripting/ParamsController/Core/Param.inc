@@ -29,7 +29,7 @@ T_Param:Param_Construct(
     const sKey[],
     const T_ParamType:iType,
     const bool:bRequired = true,
-    const sTag[] = NULL_STRING
+    const sTag[] = ""
 ) {
     new Param[S_Param];
 

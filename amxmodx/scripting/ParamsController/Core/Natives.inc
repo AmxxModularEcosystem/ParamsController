@@ -3,6 +3,22 @@
 #include "ParamsController/Core/ParamType"
 #include "ParamsController/Core/Param"
 
+#define API__CheckPluginInitedP(%1) CompositeMacros( \
+    if (!IsPluginInited()) { \
+        log_error(1, "Attempt to interact with params before init them."); \
+        return %1; \
+    } \
+)
+#define API__CheckPluginInited() API__CheckPluginInitedP( )
+
+#define API__CheckCurrentParamsP(%1) CompositeMacros( \
+    if (g_tCurrentParams == Invalid_Trie) { \
+        log_error(1, "Attempt to set param value outside the read callback."); \
+        return %1; \
+    } \
+)
+#define API__CheckCurrentParams() API__CheckCurrentParamsP( )
+
 public plugin_natives() {
     Natives_Init("ParamsController");
 
@@ -25,11 +41,17 @@ public plugin_natives() {
 @_SetCell() {
     enum {Arg_iCell = 1}
 
+    API__CheckPluginInitedP(false);
+    API__CheckCurrentParamsP(false);
+
     return TrieSetCell(g_tCurrentParams, g_sCurrentParamName, get_param(Arg_iCell));
 }
 
 @_SetString() {
     enum {Arg_sString = 1}
+
+    API__CheckPluginInitedP(0);
+    API__CheckCurrentParamsP(0);
 
     static sString[PARAM_LONG_STRING_MAX_LEN];
     get_string(Arg_sString, sString, charsmax(sString));
@@ -40,6 +62,8 @@ public plugin_natives() {
 T_ParamType:@_ParamType_Register() {
     enum {Arg_sParamTypeName = 1}
 
+    API__CheckPluginInitedP(Invalid_ParamType);
+
     new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
     get_string(Arg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
 
@@ -48,6 +72,8 @@ T_ParamType:@_ParamType_Register() {
 
 @_ParamType_SetReadCallback(const PluginId) {
     enum {Arg_iParamType = 1, Arg_sCallback}
+
+    API__CheckPluginInited();
 
     new T_ParamType:iParamType = T_ParamType:get_param(Arg_iParamType);
     new sCallback[PARAM_TYPE_READ_CALLBACK_MAX_LEN];
@@ -59,26 +85,23 @@ T_ParamType:@_ParamType_Register() {
 T_Param:@_Param_Construct() {
     enum {Arg_sKey = 1, Arg_sParamTypeName, Arg_bRequired}
 
+    API__CheckPluginInitedP(Invalid_Param);
+
     new sKey[PARAM_KEY_MAX_LEN];
     get_string(Arg_sKey, sKey, charsmax(sKey));
 
-    new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
+    new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN + PARAM_TYPE_TAG_MAX_LEN + 1];
     get_string(Arg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
-
-    new i = strfind(sParamTypeName, PARAMS_CONTROLLER_TYPE_TAG_DELIMITER);
-    if (i > 0) {
-        sParamTypeName[i] = 0; // EOS
-    }
-    new T_ParamType:iParamType = ParamType_Find(sParamTypeName, .bOrFail=true);
     
     new bool:bRequired = !!get_param(Arg_bRequired);
 
-    new sParamTag[PARAM_TYPE_TAG_MAX_LEN];
-    if (i > 0) {
-        copy(sParamTag, charsmax(sParamTag), sParamTypeName[i + 1]);
-    } else {
-        sParamTag[0] = 0;
-    }
+
+    new sParamType[PARAM_TYPE_NAME_MAX_LEN], sParamTag[PARAM_TYPE_TAG_MAX_LEN];
+    ParamType_GetTypeAndTag(sParamTypeName,
+        sParamType, charsmax(sParamType),
+        sParamTag, charsmax(sParamTag)
+    );
+    new T_ParamType:iParamType = ParamType_Find(sParamType, .bOrFail = true);
 
     return Param_Construct(sKey, iParamType, bRequired, sParamTag);
 }
@@ -87,6 +110,8 @@ T_Param:@_Param_Construct() {
 Trie:@_Param_ReadList() {
     enum {Arg_aParams = 1, Arg_jObj, Arg_tAppend, Arg_iErrType, Arg_sErrParamName, Arg_iErrParamNameLen}
 
+    API__CheckPluginInitedP(Invalid_Trie);
+
     new Array:aParams = Array:get_param(Arg_aParams);
     new JSON:jObj = JSON:get_param(Arg_jObj);
     new Trie:tAppend = Trie:get_param_byref(Arg_tAppend);
@@ -94,6 +119,11 @@ Trie:@_Param_ReadList() {
     new sErrParamName[PARAM_KEY_MAX_LEN];
     get_string(Arg_sErrParamName, sErrParamName, charsmax(sErrParamName));
     new iErrParamNameLen = get_param(Arg_iErrParamNameLen);
+
+    if (!json_is_object(jObj)) {
+        log_error(0, "[ERROR] Param jObj must be an object. (%d)", jObj);
+        return Invalid_Trie;
+    }
 
     new Trie:tRet = Param_ReadList(aParams, jObj, tAppend, iErrType, sErrParamName, iErrParamNameLen);
 

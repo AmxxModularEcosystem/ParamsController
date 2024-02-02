@@ -73,17 +73,44 @@ ParamType_SetReadCallback(const T_ParamType:iParamType, const sCallback[], const
     ParamType__Update(ParamType);
 }
 
+enum _:S_CurrentParam {
+    Trie:CurrentParam_Params,
+    CurrentParam_Name[PARAM_KEY_MAX_LEN],
+}
+new Stack:g_stCurrentParams = Invalid_Stack;
 new Trie:g_tCurrentParams = Invalid_Trie;
 new g_sCurrentParamName[PARAM_KEY_MAX_LEN] = "";
 
-static SetCurrentParam(const Trie:tParams, const sParamName[]) {
+static PushCurrentParam(const Trie:tParams, const sParamName[]) {
+    if (g_stCurrentParams == Invalid_Stack) {
+        g_stCurrentParams = CreateStack(S_CurrentParam);
+    }
+
+    if (g_tCurrentParams != Invalid_Trie) {
+        new CurrentParam[S_CurrentParam];
+        copy(CurrentParam[CurrentParam_Name], charsmax(CurrentParam[CurrentParam_Name]), g_sCurrentParamName);
+        CurrentParam[CurrentParam_Params] = g_tCurrentParams;
+        PushStackArray(g_stCurrentParams, CurrentParam);
+    }
+
     g_tCurrentParams = tParams;
     copy(g_sCurrentParamName, charsmax(g_sCurrentParamName), sParamName);
 }
 
-static ResetCurrentParam() {
-    g_tCurrentParams = Invalid_Trie;
-    g_sCurrentParamName[0] = 0;
+static PopCurrentParam() {
+    if (
+        g_stCurrentParams != Invalid_Stack
+        && !IsStackEmpty(g_stCurrentParams)
+    ) {
+        new CurrentParam[S_CurrentParam];
+        PopStackArray(g_stCurrentParams, CurrentParam);
+        copy(g_sCurrentParamName, charsmax(g_sCurrentParamName), CurrentParam[CurrentParam_Name]);
+        g_tCurrentParams = CurrentParam[CurrentParam_Params];
+    } else {
+        g_tCurrentParams = Invalid_Trie;
+        g_sCurrentParamName[0] = 0;
+    }
+
 }
 
 bool:ParamType_Read(
@@ -91,15 +118,15 @@ bool:ParamType_Read(
     const JSON:jValue,
     const Trie:tParams,
     const sParamKey[],
-    const sParamTag[] = NULL_STRING
+    const sParamTag[] = ""
 ) {
     new ParamType[S_ParamType];
     ParamType__Get(iParamType, ParamType);
     
-    SetCurrentParam(tParams, sParamKey);
+    PushCurrentParam(tParams, sParamKey);
     new bool:bReturned;
     ExecuteForward(ParamType[ParamType_ReadCallback], bReturned, jValue, tParams, sParamKey, sParamTag);
-    ResetCurrentParam();
+    PopCurrentParam();
 
     return bReturned;
 }
@@ -111,4 +138,8 @@ ParamType_PrintListToConsole() {
     ArrayMapForeachArray (g_amParamTypes: i => ParamType[S_ParamType]) {
         server_print(" - %s", ParamType[ParamType_Name]);
     }
+}
+
+ParamType_GetTypeAndTag(const str[], sParamType[], const iParamTypeLen, sParamTag[], const iParamTagLen) {
+    return strtok2(str, sParamType, iParamTypeLen, sParamTag, iParamTagLen, PARAMS_CONTROLLER_TYPE_TAG_DELIMITER_CHAR);
 }

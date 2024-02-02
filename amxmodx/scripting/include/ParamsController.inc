@@ -5,7 +5,7 @@
 
 #include <amxmodx>
 
-#define PARAM_TYPE_NAME_MAX_LEN 32
+#define PARAM_TYPE_NAME_MAX_LEN 64
 #define PARAM_KEY_MAX_LEN 64
 #define PARAM_VALUE_MAX_LEN 512
 #define PARAM_TYPE_READ_CALLBACK_MAX_LEN 64
@@ -18,6 +18,7 @@ stock const PARAMS_CONTROLLER_VERSION[] = _PARAMS_CONTROLLER_VERSION;
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 
 stock const PARAMS_CONTROLLER_TYPE_TAG_DELIMITER[] = ":";
+#define PARAMS_CONTROLLER_TYPE_TAG_DELIMITER_CHAR ':'
 
 enum T_Param { Invalid_Param = INVALID_HANDLE }
 enum T_ParamType { Invalid_ParamType = INVALID_HANDLE }
