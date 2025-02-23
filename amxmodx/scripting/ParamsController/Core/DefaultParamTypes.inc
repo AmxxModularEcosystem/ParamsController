@@ -5,17 +5,103 @@
 RegisterDefaultParamTypes() {
     // Идея: Либо отдельными типами, либо встроить в ядро поддержку чтения типов массивами
     // e.g. тип "String[]" будет читать массив обычных строк
-    
+
     // UPD: Общая логика не покатит, т.к. сеттеры рассчитаны именно на Trie,
     // а оборачивать каждый элемент массива в Trie не хочется
     
+    // Примитивные типы
     ParamsController_RegSimpleType("Boolean", "@OnBooleanRead");
     ParamsController_RegSimpleType("Integer", "@OnIntegerRead");
     ParamsController_RegSimpleType("Float", "@OnFloatRead");
     ParamsController_RegSimpleType("String", "@OnStringRead");
     ParamsController_RegSimpleType("ShortString", "@OnShortStringRead");
     ParamsController_RegSimpleType("LongString", "@OnLongStringRead");
+
+    // Сложные типы
     ParamsController_RegSimpleType("RGB", "@OnRGBRead");
+    ParamsController_RegSimpleType("Model", "@OnModelRead");
+    ParamsController_RegSimpleType("Sound", "@OnSoundRead");
+    ParamsController_RegSimpleType("Resource", "@OnResourceRead");
+    ParamsController_RegSimpleType("File", "@OnFileRead");
+    ParamsController_RegSimpleType("Dir", "@OnDirRead");
+}
+
+@OnModelRead(const JSON:valueJson, const Trie:p, const key[], const tag[]) {
+    new path[PLATFORM_MAX_PATH];
+    json_get_string(valueJson, path, charsmax(path));
+
+    if (!file_exists(path)) {
+        log_amx("[WARNING] Model '%s' not found.", path);
+        return false;
+    }
+
+    new index = precache_model(path);
+    if (equali(tag, "index")) {
+        return ParamsController_SetCell(index);
+    }
+
+    return ParamsController_SetString(path);
+}
+
+@OnSoundRead(const JSON:valueJson, const Trie:p, const key[], const tag[]) {
+    static path[PLATFORM_MAX_PATH];
+    json_get_string(valueJson, path, charsmax(path));
+
+    static fullPath[PLATFORM_MAX_PATH];
+    formatex(fullPath, "sound/%s", path);
+
+    if (!file_exists(fullPath)) {
+        log_amx("[WARNING] Sound '%s' not found.", fullPath);
+        return false;
+    }
+
+    new index = precache_sound(path);
+    if (equali(tag, "index")) {
+        return ParamsController_SetCell(index);
+    }
+
+    return ParamsController_SetString(path);
+}
+
+@OnResourceRead(const JSON:valueJson, const Trie:p, const key[], const tag[]) {
+    static path[PLATFORM_MAX_PATH];
+    json_get_string(valueJson, path, charsmax(path));
+
+    if (!file_exists(path)) {
+        log_amx("[WARNING] Precaching file '%s' not found.", path);
+        return false;
+    }
+
+    new index = precache_generic(path);
+    if (equali(tag, "index")) {
+        return ParamsController_SetCell(index);
+    }
+
+    return ParamsController_SetString(path);
+}
+
+@OnFileRead(const JSON:valueJson, const Trie:p
+    json_get_string(valueJson, path, charsmax(path)), const key[]) {
+    static path[PLATFORM_MAX_PATH];;
+
+    if (!file_exists(path)) {
+        log_amx("[WARNING] File '%s' not found.", path);
+        return false;
+    }
+
+    return ParamsController_SetString(path);
+}
+
+@OnDirRead(const JSON:valueJson, const Trie:p, const key[]) {
+    static path[PLATFORM_MAX_PATH];
+    json_get_string(valueJson, path, charsmax(path));
+
+    if (!dir_exists(path)) {
+        log_amx("[WARNING] Dir '%s' not found.", path);
+        return false;
+    }
+
+    return ParamsController_SetString(path);
 }
 
 @OnBooleanRead(const JSON:jValue) {
@@ -96,11 +182,11 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
                 color[i] = str_to_num(colorStr[i]);
             }
         } else {
-            log_amx("[ERROR] RGB value must be an array, object or string. String format is 'RRR,GGG,BBB' or 'RRR GGG BBB'.");
+            log_amx("[WARNING] RGB value must be an array, object or string. String format is 'RRR,GGG,BBB' or 'RRR GGG BBB'.");
             return false;
         }
     } else {
-        log_amx("[ERROR] RGB value must be an array, object or string.");
+        log_amx("[WARNING] RGB value must be an array, object or string.");
         return false;
     }
 
