@@ -33,7 +33,7 @@ PluginInit() {
     // Тут регать типы
     Forwards_RegAndCall("ParamsController_OnRegisterTypes", ET_IGNORE);
 
-    register_srvcmd("paras_controller_types", "@SrvCmd_Types");
+    register_srvcmd("params_controller_types", "@SrvCmd_Types");
 
     // После этого можно юзать типы
     Forwards_RegAndCall("ParamsController_OnInited", ET_IGNORE);
