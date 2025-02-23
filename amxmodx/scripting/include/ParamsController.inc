@@ -223,3 +223,39 @@ stock Array:ParamsController_Param_ListFromNativeParams(const iParamOffset, cons
 
     return aAppend;
 }
+
+// Getters
+
+stock any:PCGet_Cell(const Trie:p, const key[], const any:def = 0) {
+    new any:cell = def;
+    if (p != Invalid_Trie) {
+        TrieGetCell(p, key, cell);
+    }
+    return cell;
+}
+
+stock any:PCGet_Str(const Trie:p, const key[], out[] const outLen, const def[] = "") {
+    if (p != Invalid_Trie && TrieKeyExists(p, key)) {
+        return TrieGetString(p, key, out, outLen);
+    } else {
+        return copy(out, outLen, def);
+    }
+}
+
+stock any:PCGet_iStr(const Trie:p, const key[], out[] const outLen, const def[] = "") {
+    new str[PARAM_VALUE_MAX_LEN];
+    PCGet_iStr(p, key, str, outLen, def);
+    return str;
+}
+
+stock PCGet_Int(const Trie:p, const key[], const def = 0) {
+    return PCGet_Cell(p, key, def);
+}
+
+stock Float:PCGet_Float(const Trie:p, const key[], const Float:def = 0.0) {
+    return PCGet_Cell(p, key, def);
+}
+
+stock bool:PCGet_Bool(const Trie:p, const key[], const bool:def = false) {
+    return PCGet_Cell(p, key, def);
+}
