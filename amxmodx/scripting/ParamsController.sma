@@ -8,7 +8,7 @@
 #include "ParamsController/DefaultObjects/ParamType"
 
 public stock const PluginName[] = "Params Controller";
-public stock const PluginVersion[] = _PARAMS_CONTROLLER_VERSION;
+public stock const PluginVersion[] = PARAMS_CONTROLLER_VERSION;
 public stock const PluginAuthor[] = "ArKaNeMaN";
 public stock const PluginURL[] = "https://github.com/AmxxModularEcosystem/ParamsController";
 
