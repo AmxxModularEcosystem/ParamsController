@@ -8,9 +8,7 @@ Author: ArKaNeMaN
 Tg: t.me/arkaneman
 
 Functions & Macroses:
-
-    Forwards_Init(const sPrefix[]);
-    []Forwards_GetFullName(const sName[]);
+    Forwards_Init();
     Forwards_Reg(const sName[], const iStopType, const ...?param_types);
     Forwards_DefaultReturn(const iDefaultReturnValue);
     Forwards_Call(const sName[]);
@@ -22,23 +20,15 @@ Functions & Macroses:
 
 #include <amxmodx>
 
-stock const FORWARDS_NAME_TEMPLATE[] = "%s_On%s";
-
 stock Trie:Forwards_gMap = Invalid_Trie;
-stock Forwards_gPrefix[32];
 
-stock Forwards_Init(const sPrefix[]) {
+stock Forwards_Init() {
     Forwards_gMap = TrieCreate();
-    copy(Forwards_gPrefix, charsmax(Forwards_gPrefix), sPrefix);
 }
-
-// []Forwards_GetFullName(const sName[]);
-#define Forwards_GetFullName(%1) \
-    fmt(FORWARDS_NAME_TEMPLATE, Forwards_gPrefix, %1)
 
 // Forwards_Reg(const sName[], const iStopType, const ...?param_types);
 #define Forwards_Reg(%1,%2) \
-    TrieSetCell(Forwards_gMap, %1, CreateMultiForward(Forwards_GetFullName(%1), %2), false)
+    TrieSetCell(Forwards_gMap, %1, CreateMultiForward(%1, %2), false)
 
 stock __Forwards_Call_ret;
 
@@ -66,10 +56,7 @@ stock __Forwards_RegAndCall_handler;
 #define Forwards_RegAndCallP(%1,%2,[%3],[%4]) \
     (DestroyForward( \
         ExecuteForward( \
-            __Forwards_RegAndCall_handler = CreateMultiForward( \
-                Forwards_GetFullName(%1), \
-                %2, %3 \
-            ), \
+            __Forwards_RegAndCall_handler = CreateMultiForward(%1, %2, %3), \
             __Forwards_Call_ret, %4 \
         ) ? __Forwards_RegAndCall_handler : __Forwards_RegAndCall_handler \
     ) ? __Forwards_Call_ret : __Forwards_Call_ret)
@@ -78,10 +65,7 @@ stock __Forwards_RegAndCall_handler;
 #define Forwards_RegAndCall(%1,%2) \
     (DestroyForward( \
         ExecuteForward( \
-            __Forwards_RegAndCall_handler = CreateMultiForward( \
-                Forwards_GetFullName(%1), \
-                %2 \
-            ), \
+            __Forwards_RegAndCall_handler = CreateMultiForward(%1, %2), \
             __Forwards_Call_ret \
         ) ? __Forwards_RegAndCall_handler : __Forwards_RegAndCall_handler \
     ) ? __Forwards_Call_ret : __Forwards_Call_ret)

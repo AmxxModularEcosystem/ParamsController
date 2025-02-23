@@ -6,9 +6,7 @@
 #include <amxmodx>
 #include <json>
 #include <ParamsController>
-#include "ParamsController/Core/ParamType"
-#include "ParamsController/Utils"
-#include "ParamsController/ArrayTrieUtils"
+#include "ParamsController/Objects/ParamType"
 
 enum _:S_Param {
     Param_Key[PARAM_KEY_MAX_LEN],
@@ -20,9 +18,11 @@ enum _:S_Param {
 static Array:g_aParams;
 
 Param_Init() {
-    CallOnce();
     ParamType_Init();
-    g_aParams = ArrayCreate(S_Param, 1);
+
+    if (g_aParams == Invalid_Array) {
+        g_aParams = ArrayCreate(S_Param, 1);
+    }
 }
 
 T_Param:Param_Construct(
@@ -41,13 +41,13 @@ T_Param:Param_Construct(
     return T_Param:ArrayPushArray(g_aParams, Param);
 }
 
-static Param__Get(const T_Param:iParam, Param[S_Param]) {
+static Param_Get(const T_Param:iParam, Param[S_Param]) {
     ArrayGetArray(g_aParams, _:iParam, Param);
 }
 
 bool:Param_Read(const T_Param:iParam, const JSON:jValue, const Trie:tParams) {
     new Param[S_Param];
-    Param__Get(iParam, Param);
+    Param_Get(iParam, Param);
     
     return ParamType_Read(Param[Param_Type], jValue, tParams, Param[Param_Key], Param[Param_Tag]);
 }
@@ -64,11 +64,15 @@ Trie:Param_ReadList(
         tAppend = TrieCreate();
     }
 
-    for (new i = 0, ii = ArraySizeSafe(aParams); i < ii; ++i) {
+    if (aParams == Invalid_Array) {
+        return tAppend;
+    }
+
+    for (new i = 0, ii = ArraySize(aParams); i < ii; ++i) {
         new T_Param:iParam = ArrayGetCell(aParams, i);
 
         new Param[S_Param];
-        Param__Get(iParam, Param);
+        Param_Get(iParam, Param);
 
         if (iErrParamNameLen > 0) {
             copy(sErrParamName, iErrParamNameLen, Param[Param_Key]);
@@ -93,7 +97,7 @@ Trie:Param_ReadList(
         }
 
         if (!TrieKeyExists(tAppend, Param[Param_Key])) {
-            ThrowError("Param type '%s' dont write value with key '%s' to trie", ParamType_iGetName(Param[Param_Type]), Param[Param_Key]);
+            abort(AMX_ERR_GENERAL, "Param type '%s' dont write value with key '%s' to trie.", ParamType_iGetName(Param[Param_Type]), Param[Param_Key]);
         }
     }
     
