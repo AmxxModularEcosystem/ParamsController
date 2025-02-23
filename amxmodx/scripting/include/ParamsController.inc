@@ -13,7 +13,7 @@
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
 
-#define _PARAMS_CONTROLLER_VERSION "1.0.0-b4"
+#define _PARAMS_CONTROLLER_VERSION "1.0.0"
 stock const PARAMS_CONTROLLER_VERSION[] = _PARAMS_CONTROLLER_VERSION;
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 
@@ -234,7 +234,7 @@ stock any:PCGet_Cell(const Trie:p, const key[], const any:def = 0) {
     return cell;
 }
 
-stock any:PCGet_Str(const Trie:p, const key[], out[] const outLen, const def[] = "") {
+stock any:PCGet_Str(const Trie:p, const key[], out[], const outLen, const def[] = "") {
     if (p != Invalid_Trie && TrieKeyExists(p, key)) {
         return TrieGetString(p, key, out, outLen);
     } else {
@@ -242,9 +242,9 @@ stock any:PCGet_Str(const Trie:p, const key[], out[] const outLen, const def[] =
     }
 }
 
-stock any:PCGet_iStr(const Trie:p, const key[], out[] const outLen, const def[] = "") {
+stock any:PCGet_iStr(const Trie:p, const key[], const def[] = "") {
     new str[PARAM_VALUE_MAX_LEN];
-    PCGet_iStr(p, key, str, outLen, def);
+    PCGet_Str(p, key, str, charsmax(str), def);
     return str;
 }
 
@@ -258,4 +258,23 @@ stock Float:PCGet_Float(const Trie:p, const key[], const Float:def = 0.0) {
 
 stock bool:PCGet_Bool(const Trie:p, const key[], const bool:def = false) {
     return PCGet_Cell(p, key, def);
+}
+
+stock PCGet_RGB(const Trie:p, const key[]) {
+    new color[3];
+    TrieGetArray(p, key, color, 3);
+
+    return color;
+}
+
+stock PCGet_RGB_Red(const Trie:p, const key[]) {
+    return PCGet_RGB(p, key)[0];
+}
+
+stock PCGet_RGB_Green(const Trie:p, const key[]) {
+    return PCGet_RGB(p, key)[1];
+}
+
+stock PCGet_RGB_Blue(const Trie:p, const key[]) {
+    return PCGet_RGB(p, key)[2];
 }
