@@ -15,91 +15,117 @@ enum _:S_Param {
     Param_Tag[PARAM_TYPE_TAG_MAX_LEN],
 }
 
-static Array:g_aParams;
+static Array:Params = Invalid_Array;
+static Stack:FreeParamHandlers = Invalid_Stack;
 
 Param_Init() {
     ParamType_Init();
 
-    if (g_aParams == Invalid_Array) {
-        g_aParams = ArrayCreate(S_Param, 1);
+    if (Params == Invalid_Array) {
+        Params = ArrayCreate(S_Param, 1);
+    }
+
+    if (FreeParamHandlers == Invalid_Stack) {
+        FreeParamHandlers = CreateStack();
     }
 }
 
 T_Param:Param_Construct(
-    const sKey[],
-    const T_ParamType:iType,
-    const bool:bRequired = true,
-    const sTag[] = ""
+    const key[],
+    const T_ParamType:type,
+    const bool:isRequired = true,
+    const tag[] = ""
 ) {
-    new Param[S_Param];
+    new paramObject[S_Param];
 
-    copy(Param[Param_Key], charsmax(Param[Param_Key]), sKey);
-    Param[Param_Type] = iType;
-    Param[Param_Required] = bRequired;
-    copy(Param[Param_Tag], charsmax(Param[Param_Tag]), sTag);
+    if (type == Invalid_ParamType) {
+        abort(AMX_ERR_PARAMS, "Invalid param type handler (%d).", type);
+        return Invalid_Param;
+    }
 
-    return T_Param:ArrayPushArray(g_aParams, Param);
+    copy(paramObject[Param_Key], charsmax(paramObject[Param_Key]), key);
+    paramObject[Param_Type] = type;
+    paramObject[Param_Required] = isRequired;
+    copy(paramObject[Param_Tag], charsmax(paramObject[Param_Tag]), tag);
+
+    if (IsStackEmpty(FreeParamHandlers)) {
+        return T_Param:ArrayPushArray(Params, paramObject);
+    } else {
+        new T_Param:param;
+        PopStackCell(FreeParamHandlers, param);
+        ArraySetArray(Params, _:param, paramObject);
+        return param;
+    }
 }
 
-static Param_Get(const T_Param:iParam, Param[S_Param]) {
-    ArrayGetArray(g_aParams, _:iParam, Param);
+static Param_Get(const T_Param:param, paramObject[S_Param]) {
+    ArrayGetArray(Params, _:param, paramObject);
+    if (paramObject[Param_Type] == Invalid_ParamType) {
+        abort(AMX_ERR_PARAMS, "Invalid param type handler (%d).", paramObject[Param_Type]);
+    }
 }
 
-bool:Param_Read(const T_Param:iParam, const JSON:jValue, const Trie:tParams) {
-    new Param[S_Param];
-    Param_Get(iParam, Param);
+T_Param:Param_Free(&T_Param:param) {
+    ArraySetCell(Params, _:param, Invalid_ParamType, Param_Type);
+    PushStackCell(FreeParamHandlers, param);
+    return param = Invalid_Param;
+}
+
+bool:Param_Read(const T_Param:param, const JSON:valueJson, const Trie:p) {
+    new paramObject[S_Param];
+    Param_Get(param, paramObject);
     
-    return ParamType_Read(Param[Param_Type], jValue, tParams, Param[Param_Key], Param[Param_Tag]);
+    return ParamType_Read(paramObject[Param_Type], valueJson, p, paramObject[Param_Key], paramObject[Param_Tag]);
 }
 
 Trie:Param_ReadList(
-    const Array:aParams,
-    const JSON:jObj,
-    &Trie:tAppend = Invalid_Trie,
+    const Array:params,
+    const JSON:objectJson,
+    &Trie:p = Invalid_Trie,
     &E_ParamsReadErrorType:iErrType = ParamsReadError_None,
     sErrParamName[] = "",
     const iErrParamNameLen = 0
 ) {
-    if (tAppend == Invalid_Trie) {
-        tAppend = TrieCreate();
+    if (p == Invalid_Trie) {
+        p = TrieCreate();
     }
 
-    if (aParams == Invalid_Array) {
-        return tAppend;
+    if (params == Invalid_Array) {
+        return p;
     }
 
-    for (new i = 0, ii = ArraySize(aParams); i < ii; ++i) {
-        new T_Param:iParam = ArrayGetCell(aParams, i);
+    for (new i = 0, ii = ArraySize(params); i < ii; ++i) {
+        new T_Param:param = ArrayGetCell(params, i);
 
-        new Param[S_Param];
-        Param_Get(iParam, Param);
+        new paramObject[S_Param];
+        Param_Get(param, paramObject);
 
         if (iErrParamNameLen > 0) {
-            copy(sErrParamName, iErrParamNameLen, Param[Param_Key]);
+            copy(sErrParamName, iErrParamNameLen, paramObject[Param_Key]);
         }
 
-        if (!json_object_has_value(jObj, Param[Param_Key])) {
-            if (Param[Param_Required]) {
+        if (!json_object_has_value(objectJson, paramObject[Param_Key])) {
+            if (paramObject[Param_Required]) {
                 iErrType = ParamsReadError_RequiredParamNotPresented;
-                return tAppend;
+                return p;
             }
 
             continue;
         }
 
-        new JSON:jValue = json_object_get_value(jObj, Param[Param_Key]);
-        new bool:bRes = Param_Read(iParam, jValue, tAppend);
-        json_free(jValue);
+        new JSON:valueJson = json_object_get_value(objectJson, paramObject[Param_Key]);
+        new bool:ret = Param_Read(param, valueJson, p);
+        json_free(valueJson);
 
-        if (!bRes) {
+        if (!ret) {
             iErrType = ParamsReadError_ParamValueIsInvalid;
-            return tAppend;
+            return p;
         }
 
-        if (!TrieKeyExists(tAppend, Param[Param_Key])) {
-            abort(AMX_ERR_GENERAL, "Param type '%s' dont write value with key '%s' to trie.", ParamType_iGetName(Param[Param_Type]), Param[Param_Key]);
+        if (!TrieKeyExists(p, paramObject[Param_Key])) {
+            abort(AMX_ERR_GENERAL, "Param type '%s' dont write value with key '%s' to trie.", ParamType_iGetName(paramObject[Param_Type]), paramObject[Param_Key]);
         }
     }
     
-    return tAppend;
+    return p;
 }

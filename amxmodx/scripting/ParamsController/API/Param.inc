@@ -4,6 +4,7 @@
 API_Param_Register() {
     register_native("ParamsController_Param_Construct", "@API_Param_ReadList");
     register_native("ParamsController_Param_ReadList", "@API_Param_ReadList");
+    register_native("ParamsController_Param_Free", "@API_Param_Free");
 }
 
 T_Param:@API_Param_Construct() {
@@ -55,4 +56,15 @@ Trie:@API_Param_ReadList() {
     set_string(Arg_sErrParamName, sErrParamName, iErrParamNameLen);
 
     return tRet;
+}
+
+T_Param:@API_Param_Free() {
+    enum {Arg_Param = 1}
+
+    new T_Param:param = T_Param:get_param_byref(Arg_Param);
+    
+    Param_Free(param);
+
+    set_param_byref(Arg_Param, _:Invalid_Param);
+    return Invalid_Param;
 }

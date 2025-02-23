@@ -142,15 +142,26 @@ stock T_ParamType:ParamsController_RegSimpleType(const sParamTypeName[], const s
 }
 
 /**
- * Создание параметра
+ * Создание экземпляра параметра.
  *
  * @param   sKey            Ключ параметра (по этому ключу будет читаться параметр из JSON-обьекта и по нему же значение будет заноситься в trie)
  * @param   sParamTypeName  Название типа параметра
  * @param   bRequired       Является ли параметр обязательным
+ * 
+ * @note Если параметр был создан для разового использования, он может быть удалён нативом ParamsController_Param_Free().
  *
  * @return  Хендлер созданного параметра
  */
 native T_Param:ParamsController_Param_Construct(const sKey[], const sParamTypeName[], const bool:bRequired = true);
+
+/**
+ * Удаление экземпляра параметра (очистка хендлера).
+ *
+ * @param   param Хендлер экземпляра параметра, который нужно удалить (очистить). Всегда заменяется на Invalid_Param.
+ *
+ * @return Всегда Invalid_Param.
+ */
+native T_Param:ParamsController_Param_Free(&T_Param:param);
 
 /**
  * Чтение массива параметров из JSON-обьекта
