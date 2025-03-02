@@ -297,6 +297,12 @@ stock PCPath_IsPathSeparator(const ch) {
     return ch == '/' || ch == '\';
 }
 
+stock PCPath_Normalize(out[], const outLen) {
+    replace_string(out, outLen, "\", "/");
+    replace_string(out, outLen, "//", "/");
+    replace_string(out, outLen, "./", "");
+}
+
 stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] = "", const forceFileExtension[] = "") {
     static __amxx_configsdir[PLATFORM_MAX_PATH];
     if (!__amxx_configsdir[0]) {
@@ -304,7 +310,7 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
     }
 
     if (PCPath_IsPathSeparator(path[0])) {
-        formatex(out, outLen, "%s%s", __amxx_configsdir, path)
+        formatex(out, outLen, "%s/%s", __amxx_configsdir, path)
     } else {
         if (absolutePrefix[0] != EOS) {
             formatex(out, outLen, "%s/%s", absolutePrefix, path);
@@ -313,8 +319,7 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
         }
     }
 
-    replace_string(out, outLen, "\", "/");
-    replace_string(out, outLen, "//", "/");
+    PCPath_Normalize(out, outLen);
 
     if (forceFileExtension[0] != EOS) {
         static ext[PLATFORM_MAX_PATH];
@@ -330,7 +335,7 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
 
 stock const PC_JSON_WRAPPER_FIELD_ROOT[] = "___PC_JSON_WRAPPER_FIELD_ROOT___dOnOtUsEtHiSkEyFoRrEaLdAtA___";
 stock const PC_JSON_WRAPPER_FIELD_HANDLER[] = "Handler";
-stock const PC_JSON_WRAPPER_FIELD_WORKDIR[] = "WorkDir";
+stock const PC_JSON_WRAPPER_FIELD_WORKDIR[] = "Workdir";
 stock const PC_JSON_WRAPPER_FIELD_FILE[] = "File";
 stock const PC_JSON_WRAPPER_FIELD_VALUE[] = "Value";
 stock const PC_JSON_WRAPPER_FIELD_LINKED[] = "Linked";
@@ -492,7 +497,7 @@ stock JSON:PCJson_FindWrapper(const JSON:value) {
     return root;
 }
 
-stock PCJson_GetWrapperWorkdir(const JSON:value) {
+stock PCJson_GetWrapperWorkdir(const JSON:value, out[] = "", const outLen = 0, const def[] = "") {
     new path[PLATFORM_MAX_PATH];
 
     new JSON:wrapper = PCJson_FindWrapper(value);
@@ -504,10 +509,18 @@ stock PCJson_GetWrapperWorkdir(const JSON:value) {
         json_free(wrapper);
     }
 
+    if (path[0] == EOS) {
+        copy(path, charsmax(path), def);
+    }
+
+    if (outLen > 0) {
+        copy(out, outLen, path);
+    }
+
     return path;
 }
 
-stock PCJson_GetWrapperFile(const JSON:value, const def[] = "") {
+stock PCJson_GetWrapperFile(const JSON:value, out[] = "", const outLen = 0, const def[] = "") {
     new path[PLATFORM_MAX_PATH];
 
     new JSON:wrapper = PCJson_FindWrapper(value);
@@ -521,6 +534,10 @@ stock PCJson_GetWrapperFile(const JSON:value, const def[] = "") {
 
     if (path[0] == EOS) {
         copy(path, charsmax(path), def);
+    }
+
+    if (outLen > 0) {
+        copy(out, outLen, path);
     }
 
     return path;
@@ -550,14 +567,21 @@ stock bool:PCJson_HandleLinkedValue(const JSON:value, &JSON:linkedOrSameValue) {
     static linkPath[PLATFORM_MAX_PATH];
     PCJson_ExtractLinkPath(value, linkPath, charsmax(linkPath));
 
+    static workdir[PLATFORM_MAX_PATH];
+    if (linkPath[0] == '.' && linkPath[1] == '/') {
+        workdir[0] = EOS;
+    } else {
+        PCJson_GetWrapperWorkdir(wrapper, workdir, charsmax(workdir));
+    }
+
     static path[PLATFORM_MAX_PATH];
     PCPath_MakePath(
         linkPath, path, charsmax(path),
-        .absolutePrefix = PCJson_GetWrapperWorkdir(wrapper),
+        .absolutePrefix = workdir,
         .forceFileExtension = "json"
     );
 
-    new JSON:linkedValue = PCJson_ParseFile(path, linkPath[0] == '.' ? "" : PCJson_GetWrapperWorkdir(wrapper));
+    new JSON:linkedValue = PCJson_ParseFile(path, workdir);
 
     new JSON:deepLinkedValue;
     if (PCJson_HandleLinkedValue(linkedValue, deepLinkedValue)) {
@@ -570,6 +594,52 @@ stock bool:PCJson_HandleLinkedValue(const JSON:value, &JSON:linkedOrSameValue) {
     }
 }
 
+enum _:E_PCJson_CachedLinkedValueState {
+    PCJson_CachedLinkedValue_NotLinked = 0,
+    PCJson_CachedLinkedValue_Linked = 1,
+    PCJson_CachedLinkedValue_Cached = 2,
+}
+
+stock PCJson_HandleCachedLinkedValue(const Trie:cache, const JSON:value, &JSON:linkedOrSameValue, &any:cachedCell, linkPath[], const linkPathLen) {
+    linkedOrSameValue = value;
+
+    if (cache == Invalid_Trie) {
+        return _:PCJson_HandleLinkedValue(value, linkedOrSameValue);
+    }
+
+    PCJson_ExtractLinkPath(value, linkPath, linkPathLen);
+    if (linkPath[0] == EOS) {
+        return PCJson_CachedLinkedValue_NotLinked;
+    }
+
+    if (TrieGetCell(cache, linkPath, cachedCell)) {
+        return PCJson_CachedLinkedValue_Cached;
+    }
+
+    return _:PCJson_HandleLinkedValue(value, linkedOrSameValue);
+}
+
+#pragma deprecated Dont use example function, please...
+stock someTag:USAGE_EXAMPLE__PCJson_HandleCachedLinkedValue(const JSON:value) {
+    // global
+    new Trie:cache; // linkPath[] => any:cachedCell
+
+    // func
+    new JSON:linked, someTag:cachedCell = someTag:-1, linkPath[PLATFORM_MAX_PATH];
+    if (PCJson_HandleCachedLinkedValue(cache, value, linked, cachedCell, linkPath, charsmax(linkPath)) == PCJson_CachedLinkedValue_Cached) {
+        return cachedCell;
+    }
+    
+    // cachedCell = YourJsonReadFunc(linked);
+
+    if (linkPath[0] != EOS && cachedCell >= 0) {
+        TrieSetCell(cache, linkPath, cachedCell);
+    }
+
+    PCJson_FreeLinked(linked);
+    return cachedCell;
+}
+
 stock JSON:PCJson_FreeLinked(&JSON:value) {
     return PCJson_Free(value, .rootOnly = true);
 }
@@ -578,7 +648,7 @@ stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[],
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 4);
 
-    log_amx("[JSON][%s] File: %s", prefix, PCJson_GetWrapperFile(value, "*unknown file*"));
+    log_amx("[JSON][%s] File: %s", prefix, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
     log_amx("[JSON][%s] Log: %s", prefix, msg);
 }
 
@@ -586,12 +656,12 @@ stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
-    abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, "*unknown file*"));
+    abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
 }
 
 stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
-    set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, "*unknown file*"));
+    set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
 }
