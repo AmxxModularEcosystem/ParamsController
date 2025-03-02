@@ -4,6 +4,7 @@
 #define __params_controller_included
 
 #include <amxmodx>
+#include <json>
 
 #define PARAM_TYPE_NAME_MAX_LEN 64
 #define PARAM_KEY_MAX_LEN 64
@@ -288,4 +289,309 @@ stock PCGet_RGB_Green(const Trie:p, const key[]) {
 
 stock PCGet_RGB_Blue(const Trie:p, const key[]) {
     return PCGet_RGB(p, key)[2];
+}
+
+// Path Utils
+
+stock PCPath_IsPathSeparator(const ch) {
+    return ch == '/' || ch == '\';
+}
+
+stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] = "", const forceFileExtension[] = "") {
+    static __amxx_configsdir[PLATFORM_MAX_PATH];
+    if (!__amxx_configsdir[0]) {
+        get_localinfo("amxx_configsdir", __amxx_configsdir, charsmax(__amxx_configsdir));
+    }
+
+    if (PCPath_IsPathSeparator(path[0])) {
+        formatex(out, outLen, "%s%s", __amxx_configsdir, path)
+    } else {
+        if (absolutePrefix[0] != EOS) {
+            formatex(out, outLen, "%s/%s", absolutePrefix, path);
+        } else {
+            formatex(out, outLen, "%s/plugins/%s/%s", __amxx_configsdir, path);
+        }
+    }
+
+    replace_string(out, outLen, "\", "/");
+    replace_string(out, outLen, "//", "/");
+
+    if (forceFileExtension[0] != EOS) {
+        static ext[PLATFORM_MAX_PATH];
+        formatex(ext, charsmax(ext), ".%s", forceFileExtension);
+
+        if (strfind(out, ext, .ignorecase = true, .pos = strlen(out) - strlen(ext)) < 0) {
+            formatex(out, outLen, "%s%s", out, ext);
+        }
+    }
+}
+
+// Json Wrapper
+
+stock const PC_JSON_WRAPPER_FIELD_ROOT[] = "___PC_JSON_WRAPPER_FIELD_ROOT___dOnOtUsEtHiSkEyFoRrEaLdAtA___";
+stock const PC_JSON_WRAPPER_FIELD_HANDLER[] = "Handler";
+stock const PC_JSON_WRAPPER_FIELD_WORKDIR[] = "WorkDir";
+stock const PC_JSON_WRAPPER_FIELD_FILE[] = "File";
+stock const PC_JSON_WRAPPER_FIELD_VALUE[] = "Value";
+stock const PC_JSON_WRAPPER_FIELD_LINKED[] = "Linked";
+#define PC_JSON_WRAPPER_MESSAGE_MAX_LEN 256
+
+stock const PC_JSON_WRAPPER_LINK_PREFIX_FILE[] = "File:";
+
+stock JSON:PCJson_ParseFile(const path[], const workdir[] = "") {
+    if (!file_exists(path)) {
+        abort(AMX_ERR_GENERAL, "[JSON][ERROR] File '%s' not found.", path);
+        return Invalid_JSON;
+    }
+
+    new JSON:value = json_parse(path, .is_file = true, .with_comments = true);
+    if (value == Invalid_JSON) {
+        abort(AMX_ERR_GENERAL, "[JSON][ERROR] File '%s' contains invalid JSON value.", path);
+        return Invalid_JSON;
+    }
+
+    new JSON:wrapper = json_init_object();
+    json_object_set_bool(wrapper, PC_JSON_WRAPPER_FIELD_ROOT, true);
+    json_object_set_number(wrapper, PC_JSON_WRAPPER_FIELD_HANDLER, _:wrapper);
+    json_object_set_string(wrapper, PC_JSON_WRAPPER_FIELD_FILE, path);
+    json_object_set_value(wrapper, PC_JSON_WRAPPER_FIELD_VALUE, value);
+
+    if (workdir[0] != EOS) {
+        json_object_set_string(wrapper, PC_JSON_WRAPPER_FIELD_WORKDIR, workdir);
+    } else {
+        static autoWorkdir[PLATFORM_MAX_PATH];
+        copy(autoWorkdir, charsmax(autoWorkdir), path);
+        for (new i = strlen(autoWorkdir) - 1; i >= 0; --i) {
+            if (PCPath_IsPathSeparator(autoWorkdir[i]) || i == 0) {
+                autoWorkdir[i] = EOS;
+                break;
+            }
+        }
+        json_object_set_string(wrapper, PC_JSON_WRAPPER_FIELD_WORKDIR, autoWorkdir);
+    }
+
+    return value;
+}
+
+stock JSON:PCJson_Free(&JSON:value, const bool:rootOnly = false) {
+    if (value == Invalid_JSON) {
+        return Invalid_JSON;
+    }
+
+    if (PCJson_IsWrapper(value)) {
+        json_free(value);
+        return Invalid_JSON;
+    }
+    
+    if (!PCJson_IsWrappedRoot(value)) {
+        if (rootOnly && !PCJson_IsRoot(value)) {
+            return value;
+        } else {
+            json_free(value);
+            return Invalid_JSON;
+        }
+    }
+    
+    new JSON:wrapper = PCJson_FindWrapper(value);
+    PCJson_FreeWrapper(wrapper);
+
+    json_free(value);
+    return Invalid_JSON;
+}
+
+stock JSON:PCJson_FreeWrapper(&JSON:value) {
+    if (!PCJson_IsWrapper(value)) {
+        abort(AMX_ERR_PARAMS, "Attempt to free not a wrapper via PCJson_FreeWrapper() function.");
+        return Invalid_JSON;
+    }
+
+    new JSON:mainWrapperHandler = JSON:json_object_get_number(value, PC_JSON_WRAPPER_FIELD_HANDLER);
+    json_free(value);
+    json_free(mainWrapperHandler);
+
+    return Invalid_JSON;
+}
+
+stock bool:PCJson_IsWrapper(const JSON:value) {
+    if (value == Invalid_JSON) {
+        return false;
+    }
+
+    return json_is_object(value)
+        && PCJson_IsRoot(value)
+        && json_object_has_value(value, PC_JSON_WRAPPER_FIELD_ROOT, JSONBoolean);
+}
+
+stock bool:PCJson_IsRoot(const JSON:value) {
+    if (value == Invalid_JSON) {
+        return false;
+    }
+    
+    new JSON:parent = json_get_parent(value);
+    new bool:ret = parent == Invalid_JSON;
+    json_free(parent);
+    return ret;
+}
+
+stock bool:PCJson_IsWrappedRoot(const JSON:value) {
+    if (value == Invalid_JSON) {
+        return false;
+    }
+    
+    new JSON:parent = json_get_parent(value);
+    new bool:ret = PCJson_IsWrapper(parent);
+    json_free(parent);
+    return ret;
+}
+
+stock bool:PCJson_IsLink(const JSON:value) {
+    if (value == Invalid_JSON || !json_is_string(value)) {
+        return false;
+    }
+
+    static str[sizeof PC_JSON_WRAPPER_LINK_PREFIX_FILE];
+    json_get_string(value, str, charsmax(str));
+
+    return bool:equali(str, PC_JSON_WRAPPER_LINK_PREFIX_FILE, charsmax(str));
+}
+
+stock JSON:PCJson_FindRoot(const JSON:value) {
+    if (value == Invalid_JSON) {
+        return Invalid_JSON;
+    }
+
+    new JSON:parent;
+    new JSON:iter = json_get_parent(value);
+    if (iter == Invalid_JSON) {
+        return value;
+    }
+
+    while (iter != Invalid_JSON) {
+        parent = json_get_parent(iter);
+        
+        if (parent == Invalid_JSON) {
+            break;
+        }
+        json_free(iter);
+        iter = parent;
+    }
+
+    return iter;
+}
+
+stock JSON:PCJson_FindWrapper(const JSON:value) {
+    new JSON:root = PCJson_FindRoot(value);
+
+    if (!PCJson_IsWrapper(root)) {
+        if (value != root) {
+            json_free(root);
+        }
+        return Invalid_JSON;
+    }
+    
+    return root;
+}
+
+stock PCJson_GetWrapperWorkdir(const JSON:value) {
+    new path[PLATFORM_MAX_PATH];
+
+    new JSON:wrapper = PCJson_FindWrapper(value);
+    if (wrapper != Invalid_JSON) {
+        json_object_get_string(wrapper, PC_JSON_WRAPPER_FIELD_WORKDIR, path, charsmax(path));
+    }
+    
+    if (wrapper != value) {
+        json_free(wrapper);
+    }
+
+    return path;
+}
+
+stock PCJson_GetWrapperFile(const JSON:value, const def[] = "") {
+    new path[PLATFORM_MAX_PATH];
+
+    new JSON:wrapper = PCJson_FindWrapper(value);
+    if (wrapper != Invalid_JSON) {
+        json_object_get_string(wrapper, PC_JSON_WRAPPER_FIELD_FILE, path, charsmax(path));
+    }
+    
+    if (wrapper != value) {
+        json_free(wrapper);
+    }
+
+    if (path[0] == EOS) {
+        copy(path, charsmax(path), def);
+    }
+
+    return path;
+}
+
+stock PCJson_ExtractLinkPath(const JSON:link, out[], const outLen) {
+    out[0] = EOS;
+    if (!PCJson_IsLink(link)) {
+        return 0;
+    }
+
+    json_get_string(link, out, outLen);
+    return replace(out, outLen, PC_JSON_WRAPPER_LINK_PREFIX_FILE, "");
+}
+
+stock bool:PCJson_HandleLinkedValue(const JSON:value, &JSON:linkedOrSameValue) {
+    linkedOrSameValue = value;
+    if (!PCJson_IsLink(value)) {
+        return false;
+    }
+
+    new JSON:wrapper = PCJson_FindWrapper(value);
+    if (wrapper == Invalid_JSON) {
+        return false;
+    }
+
+    static linkPath[PLATFORM_MAX_PATH];
+    PCJson_ExtractLinkPath(value, linkPath, charsmax(linkPath));
+
+    static path[PLATFORM_MAX_PATH];
+    PCPath_MakePath(
+        linkPath, path, charsmax(path),
+        .absolutePrefix = PCJson_GetWrapperWorkdir(wrapper),
+        .forceFileExtension = "json"
+    );
+
+    new JSON:linkedValue = PCJson_ParseFile(path, linkPath[0] == '.' ? "" : PCJson_GetWrapperWorkdir(wrapper));
+
+    new JSON:deepLinkedValue;
+    if (PCJson_HandleLinkedValue(linkedValue, deepLinkedValue)) {
+        PCJson_Free(linkedValue);
+        linkedOrSameValue = deepLinkedValue;
+        return true;
+    } else {
+        linkedOrSameValue = linkedValue;
+        return true;
+    }
+}
+
+stock JSON:PCJson_FreeLinked(&JSON:value) {
+    return PCJson_Free(value, .rootOnly = true);
+}
+
+stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[], any:...) {
+    static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
+    vformat(msg, charsmax(msg), messageFormat, 4);
+
+    log_amx("[JSON][%s] File: %s", prefix, PCJson_GetWrapperFile(value, "*unknown file*"));
+    log_amx("[JSON][%s] Log: %s", prefix, msg);
+}
+
+stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
+    static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
+    vformat(msg, charsmax(msg), messageFormat, 3);
+
+    abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, "*unknown file*"));
+}
+
+stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
+    static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
+    vformat(msg, charsmax(msg), messageFormat, 3);
+
+    set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, "*unknown file*"));
 }
