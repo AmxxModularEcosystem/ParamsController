@@ -648,7 +648,10 @@ stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[],
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 4);
 
-    log_amx("[JSON][%s] File: %s", prefix, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
+    static path[PLATFORM_MAX_PATH];
+    PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
+
+    log_amx("[JSON][%s] File: %s", prefix, path);
     log_amx("[JSON][%s] Log: %s", prefix, msg);
 }
 
@@ -656,12 +659,18 @@ stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
-    abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
+    static path[PLATFORM_MAX_PATH];
+    PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
+
+    abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, path);
 }
 
 stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
-    set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, PCJson_GetWrapperFile(value, .def = "*unknown file*"));
+    static path[PLATFORM_MAX_PATH];
+    PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
+
+    set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, path);
 }
