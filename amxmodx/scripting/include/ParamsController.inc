@@ -315,7 +315,7 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
         if (absolutePrefix[0] != EOS) {
             formatex(out, outLen, "%s/%s", absolutePrefix, path);
         } else {
-            formatex(out, outLen, "%s/plugins/%s/%s", __amxx_configsdir, path);
+            formatex(out, outLen, "%s/plugins/%s", __amxx_configsdir, path);
         }
     }
 
@@ -329,6 +329,12 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
             formatex(out, outLen, "%s%s", out, ext);
         }
     }
+}
+
+stock PCPath_iMakePath(const path[], const absolutePrefix[] = "", const forceFileExtension[] = "") {
+    new path[PLATFORM_MAX_PATH];
+    PCPath_MakePath(path, path, charsmax(path), absolutePrefix, forceFileExtension);
+    return path;
 }
 
 // Json Wrapper
