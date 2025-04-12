@@ -14,7 +14,7 @@
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
 
-#define PARAMS_CONTROLLER_VERSION "1.0.0-b5"
+#define PARAMS_CONTROLLER_VERSION "1.0.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
