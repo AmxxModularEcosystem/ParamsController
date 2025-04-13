@@ -332,9 +332,9 @@ stock PCPath_MakePath(const path[], out[], const outLen, const absolutePrefix[] 
 }
 
 stock PCPath_iMakePath(const path[], const absolutePrefix[] = "", const forceFileExtension[] = "") {
-    new path[PLATFORM_MAX_PATH];
-    PCPath_MakePath(path, path, charsmax(path), absolutePrefix, forceFileExtension);
-    return path;
+    new out[PLATFORM_MAX_PATH];
+    PCPath_MakePath(path, out, charsmax(out), absolutePrefix, forceFileExtension);
+    return out;
 }
 
 // Json Wrapper
