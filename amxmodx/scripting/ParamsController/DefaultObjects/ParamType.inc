@@ -10,20 +10,20 @@ RegisterDefaultParamTypes() {
     // а оборачивать каждый элемент массива в Trie не хочется
     
     // Примитивные типы
-    ParamsController_RegSimpleType("Boolean", "@OnBooleanRead");
-    ParamsController_RegSimpleType("Integer", "@OnIntegerRead");
-    ParamsController_RegSimpleType("Float", "@OnFloatRead");
-    ParamsController_RegSimpleType("String", "@OnStringRead");
-    ParamsController_RegSimpleType("ShortString", "@OnShortStringRead");
-    ParamsController_RegSimpleType("LongString", "@OnLongStringRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_BOOL_NAME, "@OnBooleanRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_INT_NAME, "@OnIntegerRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_FLOAT_NAME, "@OnFloatRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_STR_NAME, "@OnStringRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_SHORT_STR_NAME, "@OnShortStringRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_LONG_STR_NAME, "@OnLongStringRead");
 
     // Сложные типы
-    ParamsController_RegSimpleType("RGB", "@OnRGBRead");
-    ParamsController_RegSimpleType("Model", "@OnModelRead");
-    ParamsController_RegSimpleType("Sound", "@OnSoundRead");
-    ParamsController_RegSimpleType("Resource", "@OnResourceRead");
-    ParamsController_RegSimpleType("File", "@OnFileRead");
-    ParamsController_RegSimpleType("Dir", "@OnDirRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_RGB_NAME, "@OnRGBRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_MODEL_NAME, "@OnModelRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_SOUND_NAME, "@OnSoundRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_RESOURCE_NAME, "@OnResourceRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_FILE_NAME, "@OnFileRead");
+    ParamsController_RegSimpleType(DEFAULT_PARAMS_DIR_NAME, "@OnDirRead");
 }
 
 @OnBooleanRead(const JSON:jValue) {
@@ -121,7 +121,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
     json_get_string(valueJson, path, charsmax(path));
 
     if (!file_exists(path)) {
-        log_amx("[WARNING] Model '%s' not found.", path);
+        PCJson_LogForFile(valueJson, "WARNING", "Model '%s' not found.", path);
         return false;
     }
 
@@ -141,7 +141,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
     formatex(fullPath, charsmax(fullPath), "sound/%s", path);
 
     if (!file_exists(fullPath)) {
-        log_amx("[WARNING] Sound '%s' not found.", fullPath);
+        PCJson_LogForFile(valueJson, "WARNING", "Sound '%s' not found.", fullPath);
         return false;
     }
 
@@ -158,7 +158,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
     json_get_string(valueJson, path, charsmax(path));
 
     if (!file_exists(path)) {
-        log_amx("[WARNING] Precaching file '%s' not found.", path);
+        PCJson_LogForFile(valueJson, "WARNING", "Precaching file '%s' not found.", path);
         return false;
     }
 
@@ -175,7 +175,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
     json_get_string(valueJson, path, charsmax(path))
 
     if (!file_exists(path)) {
-        log_amx("[WARNING] File '%s' not found.", path);
+        PCJson_LogForFile(valueJson, "WARNING", "File '%s' not found.", path);
         return false;
     }
 
@@ -187,7 +187,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
     json_get_string(valueJson, path, charsmax(path));
 
     if (!dir_exists(path)) {
-        log_amx("[WARNING] Dir '%s' not found.", path);
+        PCJson_LogForFile(valueJson, "WARNING", "Dir '%s' not found.", path);
         return false;
     }
 

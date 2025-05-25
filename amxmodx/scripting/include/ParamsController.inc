@@ -14,7 +14,20 @@
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
 
-#define PARAMS_CONTROLLER_VERSION "1.0.0"
+stock const DEFAULT_PARAMS_BOOL_NAME[] = "Boolean";
+stock const DEFAULT_PARAMS_INT_NAME[] = "Integer";
+stock const DEFAULT_PARAMS_FLOAT_NAME[] = "Float";
+stock const DEFAULT_PARAMS_STR_NAME[] = "String";
+stock const DEFAULT_PARAMS_SHORT_STR_NAME[] = "ShortString";
+stock const DEFAULT_PARAMS_LONG_STR_NAME[] = "LongString";
+stock const DEFAULT_PARAMS_RGB_NAME[] = "RGB";
+stock const DEFAULT_PARAMS_MODEL_NAME[] = "Model";
+stock const DEFAULT_PARAMS_SOUND_NAME[] = "Sound";
+stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
+stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
+stock const DEFAULT_PARAMS_DIR_NAME[] = "Dir";
+
+#define PARAMS_CONTROLLER_VERSION "1.1.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
@@ -164,6 +177,19 @@ native T_Param:ParamsController_Param_Construct(const sKey[], const sParamTypeNa
  */
 native T_Param:ParamsController_Param_Free(&T_Param:param);
 
+stock Array:ParamsController_Param_FreeList(&Array:params) {
+    if (params == Invalid_Array) {
+        return params;
+    }
+
+    for (new i = 0, ii = ArraySize(params); i < ii; ++i) {
+        ParamsController_Param_Free(ArrayGetCell(params, i));
+    }
+    ArrayDestroy(params);
+
+    return params;
+}
+
 /**
  * Чтение массива параметров из JSON-обьекта
  *
@@ -181,6 +207,18 @@ native T_Param:ParamsController_Param_Free(&T_Param:param);
  * @return  Валидный trie-хендлер с прочитанными параметрами. Если был передан параметр tAppend, то будет возвращён тот же хендлер
  */
 native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj, &Trie:tAppend = Invalid_Trie, &E_ParamsReadErrorType:iErrType = ParamsReadError_None,sErrParamName[] = "", const iErrParamNameLen = 0);
+
+/**
+ * Чтение одного параметра из JSON-значения.
+ * 
+ * @param   param     Хендлер параметра.
+ * @param   valueJson JSON-значение.
+ * @param   dest      Хендлер Trie, куда будет записан прочитанный параметр.
+ * @param   orFailKey Название поля, для которого выводить ошибку в случае её возникновения. Если пусто - ошибка не будет выброшена.
+ * 
+ * @return  true, если параметр прочитан успешно, false в случае ошибки.
+ */
+native bool:ParamsController_Param_Read(const T_Param:param, const JSON:valueJson, const Trie:dest, const orFailKey[] = "");
 
 /**
  * Создание параметра из параметров натива
@@ -234,6 +272,316 @@ stock Array:ParamsController_Param_ListFromNativeParams(const iParamOffset, cons
     }
 
     return aAppend;
+}
+
+// Single
+
+stock const PCSINGLE_PARAM_KEY[] = "__SINGLE";
+
+/**
+ * Чтение одного параметра из JSON-значения.
+ * 
+ * @param   valueJson JSON-значение.
+ * @param   type      Название типа параметра. Может модержать тэг.
+ * @param   orFailKey Название поля, для которого выводить ошибку в случае её возникновения. Если пусто - ошибка не будет выброшена.
+ * 
+ * @return  Хендлер Trie с прочитанным параметром по ключу "__SINGLE". Даже в случае ошибки хендлер будет создан.
+ */
+stock Trie:PCSingle_Read(const JSON:valueJson, const type[], const orFailKey[] = "") {
+    new T_Param:param = ParamsController_Param_Construct(PCSINGLE_PARAM_KEY, type, true);
+
+    new JSON:linkedJson;
+    PCJson_HandleLinkedValue(valueJson, linkedJson);
+    
+    new Trie:p = TrieCreate();
+    ParamsController_Param_Read(param, valueJson, p, orFailKey);
+
+    ParamsController_Param_Free(param);
+    PCJson_FreeLinked(linkedJson);
+    return p;
+}
+
+/**
+ * Чтение одного параметра из JSON-обьекта.
+ * 
+ * @param   objectJson JSON-обьект.
+ * @param   key        Ключ, значение по которому нужно прочитать.
+ * @param   type       Название типа параметра. Может модержать тэг.
+ * @param   dotNot     Использовать ли вложенные ключи через точку.
+ * @param   orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return  Хендлер Trie с прочитанным параметром по ключу "__SINGLE". Даже в случае ошибки хендлер будет создан.
+ */
+stock Trie:PCSingle_ReadFromObject(const JSON:objectJson, const key[], const type[], const bool:dotNot = false, const bool:orFail = false) {
+    if (!json_is_object(objectJson)) {
+        PCJson_ErrorForFile(objectJson, "Json value must be an object. (%d)", objectJson);
+        return Invalid_Trie;
+    }
+
+    if (!json_object_has_value(objectJson, key, .dot_not = dotNot)) {
+        if (orFail) {
+            PCJson_ErrorForFile(objectJson, "Object must contain '%s' field.", key);
+        }
+        return Invalid_Trie;
+    }
+
+    new JSON:valueJson = json_object_get_value(objectJson, key, dotNot);
+    new Trie:ret = PCSingle_Read(valueJson, type, orFail ? key : "");
+    json_free(valueJson);
+
+    return ret;
+}
+
+/**
+ * Чтение числового типа параметра из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock any:PCSingle_ObjCell(const JSON:objectJson, const key[], const type[], const any:def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    new Trie:p = PCSingle_ReadFromObject(objectJson, key, type, dotNot, orFail);
+
+    new any:value = def;
+    
+    if (p != Invalid_Trie) {
+        TrieGetCell(p, PCSINGLE_PARAM_KEY, value);
+    }
+    TrieDestroy(p);
+
+    return value;
+}
+
+/**
+ * Чтение параметра типа "Integer" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock PCSingle_ObjInt(const JSON:objectJson, const key[], const any:def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_INT_NAME, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Float" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock Float:PCSingle_ObjFloat(const JSON:objectJson, const key[], const Float:def = 0.0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_FLOAT_NAME, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Bool" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock bool:PCSingle_ObjBool(const JSON:objectJson, const key[], const bool:def = false, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_BOOL_NAME, def, dotNot, orFail);
+}
+
+/**
+ * Чтение строкового типа параметра из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock any:PCSingle_ObjStr(const JSON:objectJson, const key[], const type[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new Trie:p = PCSingle_ReadFromObject(objectJson, key, type, dotNot, orFail);
+
+    new ret;
+    if (p != Invalid_Trie && TrieKeyExists(p, PCSINGLE_PARAM_KEY)) {
+        ret = TrieGetString(p, PCSINGLE_PARAM_KEY, out, outLen);
+    } else {
+        ret = copy(out, outLen, def);
+    }
+    TrieDestroy(p);
+
+    return ret;
+}
+
+/**
+ * Чтение строкового типа параметра из JSON-обьекта. Inline вариант функуции PCSingle_ObjStr.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock PCSingle_iObjStr(const JSON:objectJson, const key[], const type[] = DEFAULT_PARAMS_STR_NAME, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PARAM_VALUE_MAX_LEN];
+    PCSingle_ObjStr(objectJson, key, type, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
+/**
+ * Чтение параметра типа "String" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjString(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_STR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "ShortString" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjShortString(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "LongString" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjLongString(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Model" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjModel(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Sound" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjSound(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Resource" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjResource(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "File" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjFile(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, dotNot, orFail);
+}
+
+/**
+ * Чтение параметра типа "Dir" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, dotNot, orFail);
 }
 
 // Getters
@@ -466,9 +814,13 @@ stock bool:PCJson_IsLink(const JSON:value) {
     return bool:equali(str, PC_JSON_WRAPPER_LINK_PREFIX_FILE, charsmax(str));
 }
 
-stock JSON:PCJson_FindRoot(const JSON:value) {
+stock JSON:PCJson_FindRoot(const JSON:value, const Array:trace = Invalid_Array) {
     if (value == Invalid_JSON) {
         return Invalid_JSON;
+    }
+
+    if (trace != Invalid_Array) {
+        ArrayPushCell(trace, json_get_type(value));
     }
 
     new JSON:parent;
@@ -478,6 +830,10 @@ stock JSON:PCJson_FindRoot(const JSON:value) {
     }
 
     while (iter != Invalid_JSON) {
+        if (trace != Invalid_Array) {
+            ArrayPushCell(trace, json_get_type(iter));
+        }
+
         parent = json_get_parent(iter);
         
         if (parent == Invalid_JSON) {
@@ -490,8 +846,8 @@ stock JSON:PCJson_FindRoot(const JSON:value) {
     return iter;
 }
 
-stock JSON:PCJson_FindWrapper(const JSON:value) {
-    new JSON:root = PCJson_FindRoot(value);
+stock JSON:PCJson_FindWrapper(const JSON:value, const Array:trace = Invalid_Array) {
+    new JSON:root = PCJson_FindRoot(value, .trace = trace);
 
     if (!PCJson_IsWrapper(root)) {
         if (value != root) {
@@ -526,10 +882,10 @@ stock PCJson_GetWrapperWorkdir(const JSON:value, out[] = "", const outLen = 0, c
     return path;
 }
 
-stock PCJson_GetWrapperFile(const JSON:value, out[] = "", const outLen = 0, const def[] = "") {
+stock PCJson_GetWrapperFile(const JSON:value, out[] = "", const outLen = 0, const def[] = "", const Array:trace = Invalid_Array) {
     new path[PLATFORM_MAX_PATH];
 
-    new JSON:wrapper = PCJson_FindWrapper(value);
+    new JSON:wrapper = PCJson_FindWrapper(value, .trace = trace);
     if (wrapper != Invalid_JSON) {
         json_object_get_string(wrapper, PC_JSON_WRAPPER_FIELD_FILE, path, charsmax(path));
     }
@@ -654,11 +1010,16 @@ stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[],
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 4);
 
+    new Array:trace = ArrayCreate(1, 1);
+
     static path[PLATFORM_MAX_PATH];
-    PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
+    PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*", .trace = trace);
 
     log_amx("[JSON][%s] File: %s", prefix, path);
+    // log_amx("[JSON][%s] Trace: %s", prefix, PCJSon_TraceToString(trace, .reverse = true)); // Экспериментальное
     log_amx("[JSON][%s] Log: %s", prefix, msg);
+
+    ArrayDestroy(trace);
 }
 
 stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
@@ -670,6 +1031,7 @@ stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
 
     abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, path);
 }
+#define PCJson_AbortForFile PCJson_ErrorForFile
 
 stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
@@ -679,4 +1041,33 @@ stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
 
     set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, path);
+}
+
+stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
+    new str[256];
+    for (new i = 0, ii = ArraySize(trace); i < ii; ++i) {
+        if (i > 0) {
+            add(str, charsmax(str), "->");
+        }
+
+        switch (ArrayGetCell(trace, reverse ? ii - i - 1 : i)) {
+            case JSONError:
+                // Хз зачем, но пусть будет)
+                add(str, charsmax(str), "err");
+            case JSONNull:
+                add(str, charsmax(str), "null");
+            case JSONString:
+                add(str, charsmax(str), "str");
+            case JSONNumber:
+                add(str, charsmax(str), "num");
+            case JSONObject:
+                add(str, charsmax(str), "obj");
+            case JSONArray:
+                add(str, charsmax(str), "arr");
+            case JSONBoolean:
+                add(str, charsmax(str), "bool");
+        }
+    }
+
+    return str;
 }

@@ -63,6 +63,13 @@ ParamType_iGetName(const T_ParamType:type) {
     return typeObject[ParamType_Name];
 }
 
+ParamType_GetName(const T_ParamType:type, out[], const outLen) {
+    new typeObject[S_ParamType];
+    ParamType_Get(type, typeObject);
+    
+    return copy(out, outLen, typeObject[ParamType_Name]);
+}
+
 ParamType_SetReadCallback(const T_ParamType:type, const functionName[], const pluginIndex) {
     new typeObject[S_ParamType];
     ParamType_Get(type, typeObject);

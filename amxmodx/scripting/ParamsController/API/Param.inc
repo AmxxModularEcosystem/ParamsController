@@ -4,6 +4,7 @@
 API_Param_Register() {
     register_native("ParamsController_Param_Construct", "@API_Param_Construct");
     register_native("ParamsController_Param_ReadList", "@API_Param_ReadList");
+    register_native("ParamsController_Param_Read", "@API_Param_Read");
     register_native("ParamsController_Param_Free", "@API_Param_Free");
 }
 
@@ -46,7 +47,7 @@ Trie:@API_Param_ReadList() {
     new iErrParamNameLen = get_param(Arg_iErrParamNameLen);
 
     if (!json_is_object(jObj)) {
-        log_error(0, "[ERROR] Param jObj must be an object. (%d)", jObj);
+        log_error(AMX_ERR_PARAMS, "[ERROR] Param jObj must be an object. (%d)", jObj);
         return Invalid_Trie;
     }
 
@@ -56,6 +57,32 @@ Trie:@API_Param_ReadList() {
     set_string(Arg_sErrParamName, sErrParamName, iErrParamNameLen);
 
     return tRet;
+}
+
+bool:@API_Param_Read() {
+    enum {Arg_Param = 1, Arg_ValueJson, Arg_Dest, Arg_OrFailKey}
+
+    API_CheckPluginInited();
+
+    new T_Param:param = T_Param:get_param(Arg_Param);
+    new JSON:valueJson = JSON:get_param(Arg_ValueJson);
+    new Trie:dest = Trie:get_param(Arg_Dest);
+    new orFailKey[MAX_FMT_LENGTH];
+    get_string(Arg_OrFailKey, orFailKey, charsmax(orFailKey));
+
+    if (valueJson == Invalid_JSON) {
+        // log_error(AMX_ERR_PARAMS, "[ERROR] Param valueJson must be a valid json handler. (%d)", valueJson);
+        return false;
+    }
+
+    new bool:ret = Param_Read(param, valueJson, dest);
+
+    if (orFailKey[0] != EOS && !ret) {
+        PCJson_ErrorForFile(valueJson, "Field '%s' has invalid value for '%s' param type.", orFailKey, Param_iGetType(param));
+        return false;
+    }
+
+    return ret;
 }
 
 T_Param:@API_Param_Free() {

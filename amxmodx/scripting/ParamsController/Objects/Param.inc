@@ -65,6 +65,16 @@ static Param_Get(const T_Param:param, paramObject[S_Param]) {
     }
 }
 
+Param_iGetType(const T_Param:param) {
+    new paramObject[S_Param];
+    Param_Get(param, paramObject);
+
+    new typeName[PARAM_TYPE_NAME_MAX_LEN];
+    ParamType_GetName(paramObject[Param_Type], typeName, charsmax(typeName));
+
+    return typeName;
+}
+
 T_Param:Param_Free(&T_Param:param) {
     ArraySetCell(Params, _:param, Invalid_ParamType, Param_Type);
     PushStackCell(FreeParamHandlers, param);
