@@ -26,15 +26,14 @@ RegisterDefaultParamTypes() {
     ParamsController_RegSimpleType(DEFAULT_PARAMS_DIR_NAME, "@OnDirRead");
 }
 
-@OnBooleanRead(const JSON:jValue) {
-    return ParamsController_SetCell(json_get_bool(jValue));
-    switch (json_get_type(jValue)) {
+@OnBooleanRead(const JSON:valueJson) {
+    switch (json_get_type(valueJson)) {
         case JSONNumber: {
-            return ParamsController_SetCell(json_get_number(jValue) != 0);
+            return ParamsController_SetCell(json_get_number(valueJson) != 0);
         }
         case JSONString: {
             static str[16];
-            json_get_string(jValue, str, charsmax(str));
+            json_get_string(valueJson, str, charsmax(str));
 
             if (
                 equali(str, "yes")
@@ -60,74 +59,68 @@ RegisterDefaultParamTypes() {
             return false;
         }
         case JSONBoolean: {
-            return ParamsController_SetCell(json_get_bool(jValue));
-        }
-        default: {
-            PCJson_LogForFile(valueJson, "WARNING", "Invalid boolean value.");
-            return false;
+            return ParamsController_SetCell(json_get_bool(valueJson));
         }
     }
+    PCJson_LogForFile(valueJson, "WARNING", "Invalid boolean value.");
+    return false;
 }
 
-@OnIntegerRead(const JSON:jValue) {
-    switch (json_get_type(jValue)) {
+@OnIntegerRead(const JSON:valueJson) {
+    switch (json_get_type(valueJson)) {
         case JSONNumber: {
-            return ParamsController_SetCell(json_get_number(jValue));
+            return ParamsController_SetCell(json_get_number(valueJson));
         }
         case JSONString: {
             new str[16];
-            json_get_string(jValue, str, charsmax(str));
+            json_get_string(valueJson, str, charsmax(str));
 
             return ParamsController_SetCell(str_to_num(str));
         }
         case JSONBoolean: {
-            return ParamsController_SetCell(json_get_bool(jValue) ? 1 : 0);
-        }
-        default: {
-            PCJson_LogForFile(valueJson, "WARNING", "Invalid integer value.");
-            return false;
+            return ParamsController_SetCell(json_get_bool(valueJson) ? 1 : 0);
         }
     }
+    PCJson_LogForFile(valueJson, "WARNING", "Invalid integer value.");
+    return false;
 }
 
-@OnFloatRead(const JSON:jValue) {
-    switch (json_get_type(jValue)) {
+@OnFloatRead(const JSON:valueJson) {
+    switch (json_get_type(valueJson)) {
         case JSONNumber: {
-            return ParamsController_SetCell(json_get_real(jValue));
+            return ParamsController_SetCell(json_get_real(valueJson));
         }
         case JSONString: {
             new str[16];
-            json_get_string(jValue, str, charsmax(str));
+            json_get_string(valueJson, str, charsmax(str));
 
             return ParamsController_SetCell(str_to_float(str));
         }
         case JSONBoolean: {
-            return ParamsController_SetCell(json_get_bool(jValue) ? 1 : 0);
-        }
-        default: {
-            PCJson_LogForFile(valueJson, "WARNING", "Invalid float (real) value.");
-            return false;
+            return ParamsController_SetCell(json_get_bool(valueJson) ? 1 : 0);
         }
     }
+    PCJson_LogForFile(valueJson, "WARNING", "Invalid float (real) value.");
+    return false;
 }
 
-@OnStringRead(const JSON:jValue) {
+@OnStringRead(const JSON:valueJson) {
     static sValue[PARAM_VALUE_MAX_LEN];
-    json_get_string(jValue, sValue, charsmax(sValue));
+    json_get_string(valueJson, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
 }
 
-@OnShortStringRead(const JSON:jValue) {
+@OnShortStringRead(const JSON:valueJson) {
     static sValue[PARAM_SHORT_STRING_MAX_LEN];
-    json_get_string(jValue, sValue, charsmax(sValue));
+    json_get_string(valueJson, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
 }
 
-@OnLongStringRead(const JSON:jValue) {
+@OnLongStringRead(const JSON:valueJson) {
     static sValue[PARAM_LONG_STRING_MAX_LEN];
-    json_get_string(jValue, sValue, charsmax(sValue));
+    json_get_string(valueJson, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
 }

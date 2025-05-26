@@ -685,6 +685,40 @@ stock PCPath_iMakePath(const path[], const absolutePrefix[] = "", const forceFil
     return out;
 }
 
+stock bool:PCPath_GetFileName(const path[], out[], const outLen) {
+    new i = strlen(path) - 1;
+
+    if (PCPath_IsPathSeparator(path[i])) {
+        return false;
+    }
+
+    while (!PCPath_IsPathSeparator(path[i - 1])) {
+        --i;
+    }
+
+    new j = 0, lastDot = -1;
+    while (j < outLen && path[i + j]) {
+        out[j] = path[i + j];
+        if (out[j] == '.') {
+            lastDot = j;
+        }
+
+        j++;
+    }
+
+    if (lastDot >= 0 && lastDot != j - 1) {
+        out[lastDot] = EOS;
+    }
+
+    return true;
+}
+
+stock PCPath_iGetFileName(const path[]) {
+    new out[PLATFORM_MAX_PATH];
+    PCPath_GetFileName(path, out, charsmax(out));
+    return out;
+}
+
 // Json Wrapper
 
 stock const PC_JSON_WRAPPER_FIELD_ROOT[] = "___PC_JSON_WRAPPER_FIELD_ROOT___dOnOtUsEtHiSkEyFoRrEaLdAtA___";
