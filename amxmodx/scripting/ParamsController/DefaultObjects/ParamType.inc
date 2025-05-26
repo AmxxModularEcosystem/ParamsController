@@ -52,7 +52,7 @@ RegisterDefaultParamTypes() {
                 || equali(str, "0")
                 || equali(str, "n")
             ) {
-                return ParamsController_SetCell(true);
+                return ParamsController_SetCell(false);
             }
             
             PCJson_LogForFile(valueJson, "WARNING", "Invalid string boolean value (%s).", str);
