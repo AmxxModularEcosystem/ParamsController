@@ -28,32 +28,105 @@ RegisterDefaultParamTypes() {
 
 @OnBooleanRead(const JSON:jValue) {
     return ParamsController_SetCell(json_get_bool(jValue));
+    switch (json_get_type(jValue)) {
+        case JSONNumber: {
+            return ParamsController_SetCell(json_get_number(jValue) != 0);
+        }
+        case JSONString: {
+            static str[16];
+            json_get_string(jValue, str, charsmax(str));
+
+            if (
+                equali(str, "yes")
+                || equali(str, "true")
+                || equali(str, "on")
+                || equali(str, "1")
+                || equali(str, "y")
+            ) {
+                return ParamsController_SetCell(true);
+            }
+
+            if (
+                equali(str, "no")
+                || equali(str, "false")
+                || equali(str, "off")
+                || equali(str, "0")
+                || equali(str, "n")
+            ) {
+                return ParamsController_SetCell(true);
+            }
+            
+            PCJson_LogForFile(valueJson, "WARNING", "Invalid string boolean value (%s).", str);
+            return false;
+        }
+        case JSONBoolean: {
+            return ParamsController_SetCell(json_get_bool(jValue));
+        }
+        default: {
+            PCJson_LogForFile(valueJson, "WARNING", "Invalid boolean value.");
+            return false;
+        }
+    }
 }
 
 @OnIntegerRead(const JSON:jValue) {
-    return ParamsController_SetCell(json_get_number(jValue));
+    switch (json_get_type(jValue)) {
+        case JSONNumber: {
+            return ParamsController_SetCell(json_get_number(jValue));
+        }
+        case JSONString: {
+            new str[16];
+            json_get_string(jValue, str, charsmax(str));
+
+            return ParamsController_SetCell(str_to_num(str));
+        }
+        case JSONBoolean: {
+            return ParamsController_SetCell(json_get_bool(jValue) ? 1 : 0);
+        }
+        default: {
+            PCJson_LogForFile(valueJson, "WARNING", "Invalid integer value.");
+            return false;
+        }
+    }
 }
 
 @OnFloatRead(const JSON:jValue) {
-    return ParamsController_SetCell(json_get_real(jValue));
+    switch (json_get_type(jValue)) {
+        case JSONNumber: {
+            return ParamsController_SetCell(json_get_real(jValue));
+        }
+        case JSONString: {
+            new str[16];
+            json_get_string(jValue, str, charsmax(str));
+
+            return ParamsController_SetCell(str_to_float(str));
+        }
+        case JSONBoolean: {
+            return ParamsController_SetCell(json_get_bool(jValue) ? 1 : 0);
+        }
+        default: {
+            PCJson_LogForFile(valueJson, "WARNING", "Invalid float (real) value.");
+            return false;
+        }
+    }
 }
 
 @OnStringRead(const JSON:jValue) {
-    new sValue[PARAM_VALUE_MAX_LEN];
+    static sValue[PARAM_VALUE_MAX_LEN];
     json_get_string(jValue, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
 }
 
 @OnShortStringRead(const JSON:jValue) {
-    new sValue[PARAM_SHORT_STRING_MAX_LEN];
+    static sValue[PARAM_SHORT_STRING_MAX_LEN];
     json_get_string(jValue, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
 }
 
 @OnLongStringRead(const JSON:jValue) {
-    new sValue[PARAM_LONG_STRING_MAX_LEN];
+    static sValue[PARAM_LONG_STRING_MAX_LEN];
     json_get_string(jValue, sValue, charsmax(sValue));
 
     return ParamsController_SetString(sValue);
@@ -104,11 +177,11 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
                 color[i] = str_to_num(colorStr[i]);
             }
         } else {
-            log_amx("[WARNING] RGB value must be an array, object or string. String format is 'RRR,GGG,BBB' or 'RRR GGG BBB'.");
+            PCJson_LogForFile(valueJson, "WARNING", "RGB value must be an array, object or string. String format is 'RRR,GGG,BBB' or 'RRR GGG BBB'.");
             return false;
         }
     } else {
-        log_amx("[WARNING] RGB value must be an array, object or string.");
+        PCJson_LogForFile(valueJson, "WARNING", "RGB value must be an array, object or string.");
         return false;
     }
 
@@ -117,7 +190,7 @@ bool:@OnRGBRead(const JSON:valueJson, const Trie:p, const key[]) {
 }
 
 @OnModelRead(const JSON:valueJson, const Trie:p, const key[], const tag[]) {
-    new path[PLATFORM_MAX_PATH];
+    static path[PLATFORM_MAX_PATH];
     json_get_string(valueJson, path, charsmax(path));
 
     if (!file_exists(path)) {
