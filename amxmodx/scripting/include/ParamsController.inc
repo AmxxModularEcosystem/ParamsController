@@ -27,7 +27,7 @@ stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
 stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
 stock const DEFAULT_PARAMS_DIR_NAME[] = "Dir";
 
-#define PARAMS_CONTROLLER_VERSION "1.1.0"
+#define PARAMS_CONTROLLER_VERSION "1.1.1"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
