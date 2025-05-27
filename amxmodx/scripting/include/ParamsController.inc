@@ -27,7 +27,7 @@ stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
 stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
 stock const DEFAULT_PARAMS_DIR_NAME[] = "Dir";
 
-#define PARAMS_CONTROLLER_VERSION "1.1.1"
+#define PARAMS_CONTROLLER_VERSION "1.1.2"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
@@ -294,7 +294,7 @@ stock Trie:PCSingle_Read(const JSON:valueJson, const type[], const orFailKey[] =
     PCJson_HandleLinkedValue(valueJson, linkedJson);
     
     new Trie:p = TrieCreate();
-    ParamsController_Param_Read(param, valueJson, p, orFailKey);
+    ParamsController_Param_Read(param, linkedJson, p, orFailKey);
 
     ParamsController_Param_Free(param);
     PCJson_FreeLinked(linkedJson);
