@@ -5,7 +5,7 @@
 #include "ParamsController/Utils"
 
 #include "ParamsController/Objects/Param"
-#include "ParamsController/DefaultObjects/ParamType"
+#include "ParamsController/DefaultObjects/Registrar"
 
 public stock const PluginName[] = "Params Controller";
 public stock const PluginVersion[] = PARAMS_CONTROLLER_VERSION;
@@ -28,7 +28,7 @@ PluginInit() {
 
     Forwards_Init();
     Param_Init();
-    RegisterDefaultParamTypes();
+    DefaultObjects_ParamType_Register();
 
     // Тут регать типы
     Forwards_RegAndCall("ParamsController_OnRegisterTypes", ET_IGNORE);

@@ -13,6 +13,7 @@
 #define PARAM_TYPE_TAG_MAX_LEN 64
 #define PARAM_SHORT_STRING_MAX_LEN 64
 #define PARAM_LONG_STRING_MAX_LEN 4096
+#define PARAM_CHAT_MESSAGE_MAX_LEN 190
 
 stock const DEFAULT_PARAMS_BOOL_NAME[] = "Boolean";
 stock const DEFAULT_PARAMS_INT_NAME[] = "Integer";
@@ -26,8 +27,9 @@ stock const DEFAULT_PARAMS_SOUND_NAME[] = "Sound";
 stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
 stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
 stock const DEFAULT_PARAMS_DIR_NAME[] = "Dir";
+stock const DEFAULT_PARAMS_CHAT_MESSAGE_NAME[] = "ChatMessage";
 
-#define PARAMS_CONTROLLER_VERSION "1.1.2"
+#define PARAMS_CONTROLLER_VERSION "1.2.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
@@ -584,6 +586,23 @@ stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, c
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+/**
+ * Чтение параметра типа "СhatMessage" из JSON-обьекта.
+ * 
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjChatMessage(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, dotNot, orFail);
+}
+
 // Getters
 
 stock any:PCGet_Cell(const Trie:p, const key[], const any:def = 0) {
@@ -594,7 +613,7 @@ stock any:PCGet_Cell(const Trie:p, const key[], const any:def = 0) {
     return cell;
 }
 
-stock any:PCGet_Str(const Trie:p, const key[], out[], const outLen, const def[] = "") {
+stock PCGet_Str(const Trie:p, const key[], out[], const outLen, const def[] = "") {
     if (p != Invalid_Trie && TrieKeyExists(p, key)) {
         return TrieGetString(p, key, out, outLen);
     } else {
@@ -602,10 +621,29 @@ stock any:PCGet_Str(const Trie:p, const key[], out[], const outLen, const def[] 
     }
 }
 
-stock any:PCGet_iStr(const Trie:p, const key[], const def[] = "") {
+stock PCGet_iStr(const Trie:p, const key[], const def[] = "") {
     new str[PARAM_VALUE_MAX_LEN];
     PCGet_Str(p, key, str, charsmax(str), def);
     return str;
+}
+
+stock PCGet_iChatMessage(const Trie:p, const key[], const def[] = "") {
+    new str[PARAM_CHAT_MESSAGE_MAX_LEN];
+    PCGet_Str(p, key, str, charsmax(str), def);
+    return str;
+}
+
+stock bool:PCGet_ChatMessagePrint(const playerIndex, const Trie:p, const key[], const def[] = "", const sender = print_team_default) {
+    new str[PARAM_CHAT_MESSAGE_MAX_LEN];
+    PCGet_Str(p, key, str, charsmax(str), def);
+
+    if (!def[0] == EOS) {
+        return false;
+    }
+
+    client_print_color(sender, playerIndex, "%s", str);
+
+    return true;
 }
 
 stock PCGet_Int(const Trie:p, const key[], const def = 0) {
