@@ -28,6 +28,9 @@ stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
 stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
 stock const DEFAULT_PARAMS_DIR_NAME[] = "Dir";
 stock const DEFAULT_PARAMS_CHAT_MESSAGE_NAME[] = "ChatMessage";
+stock const DEFAULT_PARAMS_TIME_INTERVAL_NAME[] = "TimeInterval";
+stock const DEFAULT_PARAMS_TIME_NAME[] = "Time";
+stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 
 #define PARAMS_CONTROLLER_VERSION "1.2.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
