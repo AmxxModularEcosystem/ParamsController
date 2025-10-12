@@ -1150,7 +1150,7 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
 
 // Cvars
 
-PCCvar_Const(const name[], const value[]) {
+stock PCCvar_Const(const name[], const value[]) {
     new p = create_cvar(name, value);
     set_pcvar_string(p, value);
 
