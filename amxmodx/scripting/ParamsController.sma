@@ -2,7 +2,6 @@
 #include <ParamsController>
 
 #include "ParamsController/Forwards"
-#include "ParamsController/Utils"
 
 #include "ParamsController/Objects/Param"
 #include "ParamsController/DefaultObjects/Registrar"
@@ -17,7 +16,7 @@ static bool:PluginInited = false;
 public plugin_precache() {
     register_plugin(PluginName, PluginVersion, PluginAuthor);
     register_library(PARAMS_CONTROLLER_LIBRARY);
-    CreateConstCvar(PARAMS_CONTROLLER_VERSION_CVAR_NAME, PluginVersion);
+    PCCvar_Const(PARAMS_CONTROLLER_VERSION_CVAR_NAME, PluginVersion);
 }
 
 PluginInit() {

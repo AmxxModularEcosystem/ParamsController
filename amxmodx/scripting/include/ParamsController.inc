@@ -31,6 +31,7 @@ stock const DEFAULT_PARAMS_CHAT_MESSAGE_NAME[] = "ChatMessage";
 stock const DEFAULT_PARAMS_TIME_INTERVAL_NAME[] = "TimeInterval";
 stock const DEFAULT_PARAMS_TIME_NAME[] = "Time";
 stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
+stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 
 #define PARAMS_CONTROLLER_VERSION "1.2.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
@@ -1145,4 +1146,13 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
     }
 
     return str;
+}
+
+// Cvars
+
+PCCvar_Const(const name[], const value[]) {
+    new p = create_cvar(name, value);
+    set_pcvar_string(p, value);
+
+    return p;
 }

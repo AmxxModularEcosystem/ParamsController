@@ -16,6 +16,7 @@
 #include "ParamsController/DefaultObjects/ParamType/Time"
 #include "ParamsController/DefaultObjects/ParamType/TimeInterval"
 #include "ParamsController/DefaultObjects/ParamType/WeekDay"
+#include "ParamsController/DefaultObjects/ParamType/Flags"
 
 DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_Boolean_Register();
@@ -30,6 +31,7 @@ DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_File_Register();
     DefaultObjects_ParamType_Dir_Register();
     DefaultObjects_ParamType_ChatMessage_Register();
+    DefaultObjects_ParamType_Flags_Register();
 
     DefaultObjects_ParamType_Time_Register();
     DefaultObjects_ParamType_TimeInterval_Register();
