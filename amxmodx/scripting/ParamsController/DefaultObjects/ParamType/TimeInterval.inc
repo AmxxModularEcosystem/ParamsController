@@ -58,6 +58,6 @@ bool:@DefaultObjects_ParamType_TimeInterval_OnRead(const JSON:valueJson) {
         }
     }
     
-    PCJson_LogForFile(valueJson, "WARNING", "Invalid time value. Expected string (^"HH[:MM[:SS]]^").");
+    PCJson_LogForFile(valueJson, "WARNING", "Invalid time value. Expected string (^"1y2m3d4h5i6^").");
     return false;
 }
