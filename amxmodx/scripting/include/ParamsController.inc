@@ -33,7 +33,7 @@ stock const DEFAULT_PARAMS_TIME_NAME[] = "Time";
 stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 
-#define PARAMS_CONTROLLER_VERSION "1.2.0"
+#define PARAMS_CONTROLLER_VERSION "1.3.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
