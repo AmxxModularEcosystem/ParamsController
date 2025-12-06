@@ -288,7 +288,7 @@ stock const PCSINGLE_PARAM_KEY[] = "__SINGLE";
  * Чтение одного параметра из JSON-значения.
  * 
  * @param   valueJson JSON-значение.
- * @param   type      Название типа параметра. Может модержать тэг.
+ * @param   type      Название типа параметра. Может cодержать тэг.
  * @param   orFailKey Название поля, для которого выводить ошибку в случае её возникновения. Если пусто - ошибка не будет выброшена.
  * 
  * @return  Хендлер Trie с прочитанным параметром по ключу "__SINGLE". Даже в случае ошибки хендлер будет создан.
@@ -312,7 +312,7 @@ stock Trie:PCSingle_Read(const JSON:valueJson, const type[], const orFailKey[] =
  * 
  * @param   objectJson JSON-обьект.
  * @param   key        Ключ, значение по которому нужно прочитать.
- * @param   type       Название типа параметра. Может модержать тэг.
+ * @param   type       Название типа параметра. Может cодержать тэг.
  * @param   dotNot     Использовать ли вложенные ключи через точку.
  * @param   orFail     Выбрасывать ли ошибку в случае её возникновения.
  * 
@@ -343,7 +343,7 @@ stock Trie:PCSingle_ReadFromObject(const JSON:objectJson, const key[], const typ
  * 
  * @param  objectJson JSON-обьект.
  * @param  key        Ключ, значение по которому нужно прочитать.
- * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  type       Название типа параметра. Может cодержать тэг.
  * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
  * @param  dotNot     Использовать ли вложенные ключи через точку.
  * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
@@ -352,6 +352,29 @@ stock Trie:PCSingle_ReadFromObject(const JSON:objectJson, const key[], const typ
  */
 stock any:PCSingle_ObjCell(const JSON:objectJson, const key[], const type[], const any:def = 0, const bool:dotNot = false, const bool:orFail = false) {
     new Trie:p = PCSingle_ReadFromObject(objectJson, key, type, dotNot, orFail);
+
+    new any:value = def;
+    
+    if (p != Invalid_Trie) {
+        TrieGetCell(p, PCSINGLE_PARAM_KEY, value);
+    }
+    TrieDestroy(p);
+
+    return value;
+}
+
+/**
+ * Чтение числового типа параметра из JSON-значения.
+ * 
+ * @param  valueJson  JSON-обьект.
+ * @param  type       Название типа параметра. Может cодержать тэг.
+ * @param  def        Значение по умолчанию, в случае ошибки.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock any:PCSingle_Cell(const JSON:valueJson, const type[], const any:def = 0, const orFailKey[] = "") {
+    new Trie:p = PCSingle_Read(valueJson, type, orFailKey);
 
     new any:value = def;
     
@@ -378,6 +401,10 @@ stock PCSingle_ObjInt(const JSON:objectJson, const key[], const any:def = 0, con
     return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_INT_NAME, def, dotNot, orFail);
 }
 
+stock PCSingle_Int(const JSON:valueJson, const key[], const any:def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, key, DEFAULT_PARAMS_INT_NAME, def, orFailKey);
+}
+
 /**
  * Чтение параметра типа "Float" из JSON-обьекта.
  * 
@@ -391,6 +418,10 @@ stock PCSingle_ObjInt(const JSON:objectJson, const key[], const any:def = 0, con
  */
 stock Float:PCSingle_ObjFloat(const JSON:objectJson, const key[], const Float:def = 0.0, const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_FLOAT_NAME, def, dotNot, orFail);
+}
+
+stock Float:PCSingle_Float(const JSON:valueJson, const key[], const any:def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, key, DEFAULT_PARAMS_FLOAT_NAME, def, orFailKey);
 }
 
 /**
@@ -408,12 +439,16 @@ stock bool:PCSingle_ObjBool(const JSON:objectJson, const key[], const bool:def =
     return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_BOOL_NAME, def, dotNot, orFail);
 }
 
+stock bool:PCSingle_Bool(const JSON:valueJson, const key[], const any:def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, key, DEFAULT_PARAMS_BOOL_NAME, def, orFailKey);
+}
+
 /**
  * Чтение строкового типа параметра из JSON-обьекта.
  * 
  * @param  objectJson JSON-обьект.
  * @param  key        Ключ, значение по которому нужно прочитать.
- * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  type       Название типа параметра. Может cодержать тэг.
  * @param  out        Буфер для записи прочитанного значения.
  * @param  outLen     Размер буфера.
  * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
@@ -422,7 +457,7 @@ stock bool:PCSingle_ObjBool(const JSON:objectJson, const key[], const bool:def =
  * 
  * @return Кол-во записанных в буфер ячеек.
  */
-stock any:PCSingle_ObjStr(const JSON:objectJson, const key[], const type[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+stock PCSingle_ObjStr(const JSON:objectJson, const key[], const type[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     new Trie:p = PCSingle_ReadFromObject(objectJson, key, type, dotNot, orFail);
 
     new ret;
@@ -441,7 +476,7 @@ stock any:PCSingle_ObjStr(const JSON:objectJson, const key[], const type[], out[
  * 
  * @param  objectJson JSON-обьект.
  * @param  key        Ключ, значение по которому нужно прочитать.
- * @param  type       Название типа параметра. Может модержать тэг.
+ * @param  type       Название типа параметра. Может cодержать тэг.
  * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
  * @param  dotNot     Использовать ли вложенные ключи через точку.
  * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
@@ -451,6 +486,48 @@ stock any:PCSingle_ObjStr(const JSON:objectJson, const key[], const type[], out[
 stock PCSingle_iObjStr(const JSON:objectJson, const key[], const type[] = DEFAULT_PARAMS_STR_NAME, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     new out[PARAM_VALUE_MAX_LEN];
     PCSingle_ObjStr(objectJson, key, type, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
+/**
+ * Чтение строкового типа параметра из JSON-значения.
+ * 
+ * @param  valueJson  JSON-обьект.
+ * @param  type       Название типа параметра. Может cодержать тэг.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_Str(const JSON:valueJson, const type[], out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new Trie:p = PCSingle_Read(valueJson, type, orFailKey);
+
+    new ret;
+    if (p != Invalid_Trie && TrieKeyExists(p, PCSINGLE_PARAM_KEY)) {
+        ret = TrieGetString(p, PCSINGLE_PARAM_KEY, out, outLen);
+    } else {
+        ret = copy(out, outLen, def);
+    }
+    TrieDestroy(p);
+
+    return ret;
+}
+
+/**
+ * Чтение строкового типа параметра из JSON-значения. Inline вариант функуции PCSingle_Str.
+ * 
+ * @param  valueJson  JSON-обьект.
+ * @param  type       Название типа параметра. Может cодержать тэг.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ * 
+ * @return Прочитанное значение.
+ */
+stock PCSingle_iStr(const JSON:valueJson, const type[] = DEFAULT_PARAMS_STR_NAME, const def[] = "", const orFailKey[] = "") {
+    new out[PARAM_VALUE_MAX_LEN];
+    PCSingle_Str(valueJson, type, out, charsmax(out), def, orFailKey);
     return out;
 }
 
@@ -471,6 +548,16 @@ stock PCSingle_ObjString(const JSON:objectJson, const key[], out[], const outLen
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_STR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_String(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_STR_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PARAM_VALUE_MAX_LEN];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_STR_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
 /**
  * Чтение параметра типа "ShortString" из JSON-обьекта.
  * 
@@ -486,6 +573,16 @@ stock PCSingle_ObjString(const JSON:objectJson, const key[], out[], const outLen
  */
 stock PCSingle_ObjShortString(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_ShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PARAM_SHORT_STRING_MAX_LEN];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, charsmax(out), def, orFailKey);
+    return out;
 }
 
 /**
@@ -505,6 +602,16 @@ stock PCSingle_ObjLongString(const JSON:objectJson, const key[], out[], const ou
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_LongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iLongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PARAM_LONG_STRING_MAX_LEN];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_LONG_STR_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
 /**
  * Чтение параметра типа "Model" из JSON-обьекта.
  * 
@@ -520,6 +627,16 @@ stock PCSingle_ObjLongString(const JSON:objectJson, const key[], out[], const ou
  */
 stock PCSingle_ObjModel(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_Model(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iModel(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_MODEL_NAME, out, charsmax(out), def, orFailKey);
+    return out;
 }
 
 /**
@@ -539,6 +656,16 @@ stock PCSingle_ObjSound(const JSON:objectJson, const key[], out[], const outLen,
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_Sound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iSound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_SOUND_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
 /**
  * Чтение параметра типа "Resource" из JSON-обьекта.
  * 
@@ -554,6 +681,16 @@ stock PCSingle_ObjSound(const JSON:objectJson, const key[], out[], const outLen,
  */
 stock PCSingle_ObjResource(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_Resource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iResource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_RESOURCE_NAME, out, charsmax(out), def, orFailKey);
+    return out;
 }
 
 /**
@@ -573,6 +710,16 @@ stock PCSingle_ObjFile(const JSON:objectJson, const key[], out[], const outLen, 
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_File(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iFile(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_FILE_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
 /**
  * Чтение параметра типа "Dir" из JSON-обьекта.
  * 
@@ -590,6 +737,16 @@ stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, c
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_Dir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iDir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_DIR_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
 /**
  * Чтение параметра типа "СhatMessage" из JSON-обьекта.
  * 
@@ -605,6 +762,16 @@ stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, c
  */
 stock PCSingle_ObjChatMessage(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_ChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
+    return PCSingle_Str(objectJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, orFail);
+}
+
+stock PCSingle_iChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
+    new out[PARAM_CHAT_MESSAGE_MAX_LEN];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, charsmax(out), def, orFail);
+    return out;
 }
 
 // Getters
@@ -1082,7 +1249,7 @@ stock JSON:PCJson_FreeLinked(&JSON:value) {
     return PCJson_Free(value, .rootOnly = true);
 }
 
-stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[], any:...) {
+stock bool:PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 4);
 
@@ -1096,9 +1263,11 @@ stock PCJson_LogForFile(const JSON:value, const prefix[], const messageFormat[],
     log_amx("[JSON][%s] Log: %s", prefix, msg);
 
     ArrayDestroy(trace);
+
+    return false;
 }
 
-stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
+stock bool:PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
@@ -1106,10 +1275,12 @@ stock PCJson_ErrorForFile(const JSON:value, const messageFormat[], any:...) {
     PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
 
     abort(AMX_ERR_GENERAL, "[JSON][ERROR] %s (File '%s')", msg, path);
+
+    return false;
 }
 #define PCJson_AbortForFile PCJson_ErrorForFile
 
-stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
+stock bool:PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     static msg[PC_JSON_WRAPPER_MESSAGE_MAX_LEN];
     vformat(msg, charsmax(msg), messageFormat, 3);
 
@@ -1117,6 +1288,8 @@ stock PCJson_FailForFile(const JSON:value, const messageFormat[], any:...) {
     PCJson_GetWrapperFile(value, path, charsmax(path), .def = "*unknown file*");
 
     set_fail_state("[JSON][FATAL ERROR] %s (File '%s')", msg, path);
+
+    return false;
 }
 
 stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
