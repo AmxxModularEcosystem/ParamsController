@@ -549,7 +549,7 @@ stock PCSingle_ObjString(const JSON:objectJson, const key[], out[], const outLen
 }
 
 stock PCSingle_String(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_STR_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_STR_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -576,7 +576,7 @@ stock PCSingle_ObjShortString(const JSON:objectJson, const key[], out[], const o
 }
 
 stock PCSingle_ShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -603,7 +603,7 @@ stock PCSingle_ObjLongString(const JSON:objectJson, const key[], out[], const ou
 }
 
 stock PCSingle_LongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iLongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -630,7 +630,7 @@ stock PCSingle_ObjModel(const JSON:objectJson, const key[], out[], const outLen,
 }
 
 stock PCSingle_Model(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iModel(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -657,7 +657,7 @@ stock PCSingle_ObjSound(const JSON:objectJson, const key[], out[], const outLen,
 }
 
 stock PCSingle_Sound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iSound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -684,7 +684,7 @@ stock PCSingle_ObjResource(const JSON:objectJson, const key[], out[], const outL
 }
 
 stock PCSingle_Resource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iResource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -711,7 +711,7 @@ stock PCSingle_ObjFile(const JSON:objectJson, const key[], out[], const outLen, 
 }
 
 stock PCSingle_File(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iFile(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -738,7 +738,7 @@ stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, c
 }
 
 stock PCSingle_Dir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, orFailKey);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, orFailKey);
 }
 
 stock PCSingle_iDir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -765,7 +765,7 @@ stock PCSingle_ObjChatMessage(const JSON:objectJson, const key[], out[], const o
 }
 
 stock PCSingle_ChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
-    return PCSingle_Str(objectJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, orFail);
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, orFail);
 }
 
 stock PCSingle_iChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
