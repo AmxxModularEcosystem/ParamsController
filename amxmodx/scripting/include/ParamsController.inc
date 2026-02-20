@@ -303,7 +303,7 @@ stock Trie:PCSingle_Read(const JSON:valueJson, const type[], const orFailKey[] =
     ParamsController_Param_Read(param, linkedJson, p, orFailKey);
 
     ParamsController_Param_Free(param);
-    PCJson_FreeLinked(linkedJson);
+    PCJson_FreeLinked(linkedJson, valueJson);
     return p;
 }
 
@@ -1241,11 +1241,15 @@ stock someTag:USAGE_EXAMPLE__PCJson_HandleCachedLinkedValue(const JSON:value) {
         TrieSetCell(cache, linkPath, cachedCell);
     }
 
-    PCJson_FreeLinked(linked);
+    PCJson_FreeLinked(linked, value);
     return cachedCell;
 }
 
-stock JSON:PCJson_FreeLinked(&JSON:value) {
+stock JSON:PCJson_FreeLinked(&JSON:value, const JSON:sourceJson = Invalid_JSON) {
+    if (value == sourceJson) {
+        return value;
+    }
+    
     return PCJson_Free(value, .rootOnly = true);
 }
 
