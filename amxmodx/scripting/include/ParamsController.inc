@@ -552,7 +552,7 @@ stock PCSingle_String(const JSON:valueJson, out[], const outLen, const def[] = "
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_STR_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iString(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PARAM_VALUE_MAX_LEN];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_STR_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -579,7 +579,7 @@ stock PCSingle_ShortString(const JSON:valueJson, out[], const outLen, const def[
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iShortString(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PARAM_SHORT_STRING_MAX_LEN];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_SHORT_STR_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -606,7 +606,7 @@ stock PCSingle_LongString(const JSON:valueJson, out[], const outLen, const def[]
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iLongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iLongString(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PARAM_LONG_STRING_MAX_LEN];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_LONG_STR_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -633,7 +633,7 @@ stock PCSingle_Model(const JSON:valueJson, out[], const outLen, const def[] = ""
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iModel(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iModel(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_MODEL_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -660,7 +660,7 @@ stock PCSingle_Sound(const JSON:valueJson, out[], const outLen, const def[] = ""
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iSound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iSound(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_SOUND_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -687,7 +687,7 @@ stock PCSingle_Resource(const JSON:valueJson, out[], const outLen, const def[] =
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iResource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iResource(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_RESOURCE_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -714,7 +714,7 @@ stock PCSingle_File(const JSON:valueJson, out[], const outLen, const def[] = "",
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iFile(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iFile(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_FILE_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -741,7 +741,7 @@ stock PCSingle_Dir(const JSON:valueJson, out[], const outLen, const def[] = "", 
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, orFailKey);
 }
 
-stock PCSingle_iDir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+stock PCSingle_iDir(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_DIR_NAME, out, charsmax(out), def, orFailKey);
     return out;
@@ -768,7 +768,7 @@ stock PCSingle_ChatMessage(const JSON:valueJson, out[], const outLen, const def[
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, orFail);
 }
 
-stock PCSingle_iChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
+stock PCSingle_iChatMessage(const JSON:valueJson, const def[] = "", const bool:orFail = false) {
     new out[PARAM_CHAT_MESSAGE_MAX_LEN];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, charsmax(out), def, orFail);
     return out;
