@@ -295,15 +295,11 @@ stock const PCSINGLE_PARAM_KEY[] = "__SINGLE";
  */
 stock Trie:PCSingle_Read(const JSON:valueJson, const type[], const orFailKey[] = "") {
     new T_Param:param = ParamsController_Param_Construct(PCSINGLE_PARAM_KEY, type, true);
-
-    new JSON:linkedJson;
-    PCJson_HandleLinkedValue(valueJson, linkedJson);
     
     new Trie:p = TrieCreate();
-    ParamsController_Param_Read(param, linkedJson, p, orFailKey);
+    ParamsController_Param_Read(param, valueJson, p, orFailKey);
 
     ParamsController_Param_Free(param);
-    PCJson_FreeLinked(linkedJson, valueJson);
     return p;
 }
 

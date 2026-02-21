@@ -121,7 +121,6 @@ static PopCurrentParam() {
         g_tCurrentParams = Invalid_Trie;
         g_sCurrentParamName[0] = 0;
     }
-
 }
 
 bool:ParamType_Read(
@@ -133,11 +132,16 @@ bool:ParamType_Read(
 ) {
     new typeObject[S_ParamType];
     ParamType_Get(type, typeObject);
+
+    new JSON:linkedJson;
+    PCJson_HandleLinkedValue(valueJson, linkedJson);
     
     PushCurrentParam(p, key);
     new bool:ret;
-    ExecuteForward(typeObject[ParamType_ReadCallback], ret, valueJson, p, key, tag);
+    ExecuteForward(typeObject[ParamType_ReadCallback], ret, linkedJson, p, key, tag);
     PopCurrentParam();
+
+    PCJson_FreeLinked(linkedJson, valueJson);
 
     return ret;
 }
