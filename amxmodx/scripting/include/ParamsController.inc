@@ -1321,6 +1321,211 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
     return str;
 }
 
+// ===== Placeholders =====
+
+#define PH_GROUP_PREFIX_MAX_LEN     16
+#define PH_KEY_MAX_LEN              64
+#define PH_VALUE_MAX_LEN            512
+#define PH_CONTEXT_KEY_MAX_LEN      64
+#define PH_CALLBACK_MAX_LEN         64
+#define PH_FORMAT_MAX_LEN           4096
+
+enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
+
+/**
+ * Вызывается когда контроллер готов к регистрации групп и ключей плейсхолдеров.
+ * Вызывается до форварда *_OnInited.
+ *
+ * @noreturn
+ */
+forward ParamsController_PH_OnRegisterGroups();
+
+/**
+ * Регистрация группы плейсхолдеров с указанным префиксом.
+ * Плейсхолдеры этой группы в строках имеют вид {prefix:key}.
+ *
+ * @param   sPrefix     Уникальный префикс группы (например, "p" для группы игрока)
+ *
+ * @return  Хендлер зарегистрированной группы
+ */
+native T_PHGroup:ParamsController_PH_RegisterGroup(const sPrefix[]);
+
+/**
+ * Поиск группы плейсхолдеров по префиксу.
+ *
+ * @param   sPrefix     Префикс группы
+ *
+ * @return  Хендлер группы или Invalid_PHGroup если не найдена
+ */
+native T_PHGroup:ParamsController_PH_FindGroup(const sPrefix[]);
+
+/**
+ * Получение хендлера глобальной группы.
+ * Плейсхолдеры глобальной группы имеют вид {key} (без префикса).
+ *
+ * @return  Хендлер глобальной группы
+ */
+native T_PHGroup:ParamsController_PH_GetGlobalGroup();
+
+/**
+ * Регистрация ключа в группе без колбека (проактивный режим).
+ * Плагин сам по своей инициативе обновляет значение через *_PH_Set*.
+ *
+ * @param   hGroup  Хендлер группы
+ * @param   sKey    Ключ плейсхолдера
+ *
+ * @noreturn
+ */
+native ParamsController_PH_RegisterGroupKey(const T_PHGroup:hGroup, const sKey[]);
+
+/**
+ * Установка колбека для ключа в группе.
+ * Если ключ ещё не зарегистрирован — регистрирует его автоматически.
+ *
+ * @note    Сигнатура колбека: (const sKey[], const sContextKey[])
+ *              sKey:        ключ запрашиваемого плейсхолдера
+ *              sContextKey: текущий контекст группы (например, индекс игрока)
+ *          Колбек должен вызвать *_PH_SetValue / *_PH_SetIntValue / *_PH_SetFloatValue
+ *          для установки актуального значения.
+ *
+ * @param   hGroup      Хендлер группы
+ * @param   sKey        Ключ плейсхолдера
+ * @param   sCallback   Название функции-колбека
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetGroupKeyCallback(const T_PHGroup:hGroup, const sKey[], const sCallback[]);
+
+/**
+ * Помещение нового контекста на стек группы.
+ * Контекст — произвольная строка-идентификатор (например, номер entity игрока).
+ *
+ * @param   hGroup      Хендлер группы
+ * @param   sContextKey Идентификатор нового контекста
+ *
+ * @noreturn
+ */
+native ParamsController_PH_PushContext(const T_PHGroup:hGroup, const sContextKey[]);
+
+/**
+ * Снятие верхнего контекста со стека группы.
+ *
+ * @param   hGroup  Хендлер группы
+ *
+ * @noreturn
+ */
+native ParamsController_PH_PopContext(const T_PHGroup:hGroup);
+
+/**
+ * Установка строкового значения текущего плейсхолдера.
+ *
+ * @note    Можно вызывать только в рамках колбека ключа плейсхолдера
+ *
+ * @param   sValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetValue(const sValue[]);
+
+/**
+ * Установка числового (int) значения текущего плейсхолдера.
+ *
+ * @note    Можно вызывать только в рамках колбека ключа плейсхолдера
+ *
+ * @param   iValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetIntValue(const any:iValue);
+
+/**
+ * Установка числового (float) значения текущего плейсхолдера.
+ * Форматируется с точностью до 2 знаков после запятой.
+ *
+ * @note    Можно вызывать только в рамках колбека ключа плейсхолдера
+ *
+ * @param   fValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetFloatValue(const Float:fValue);
+
+/**
+ * Проактивная установка строкового значения ключа в группе (вне колбека).
+ *
+ * @param   hGroup  Хендлер группы
+ * @param   sKey    Ключ плейсхолдера
+ * @param   sValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_Set(const T_PHGroup:hGroup, const sKey[], const sValue[]);
+
+/**
+ * Проактивная установка числового (int) значения ключа в группе (вне колбека).
+ *
+ * @param   hGroup  Хендлер группы
+ * @param   sKey    Ключ плейсхолдера
+ * @param   iValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetInt(const T_PHGroup:hGroup, const sKey[], const any:iValue);
+
+/**
+ * Проактивная установка числового (float) значения ключа в группе (вне колбека).
+ * Форматируется с точностью до 2 знаков после запятой.
+ *
+ * @param   hGroup  Хендлер группы
+ * @param   sKey    Ключ плейсхолдера
+ * @param   fValue  Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native ParamsController_PH_SetFloat(const T_PHGroup:hGroup, const sKey[], const Float:fValue);
+
+/**
+ * Замена плейсхолдеров в строке sFormat, результат записывается в out.
+ * Плейсхолдеры вида {key} и {prefix:key} заменяются на актуальные значения.
+ * Неизвестные группы и незарегистрированные ключи сохраняются как есть.
+ *
+ * @param   out     Буфер для результирующей строки
+ * @param   iOutLen Размер буфера
+ * @param   sFormat Исходная строка с плейсхолдерами
+ *
+ * @noreturn
+ */
+native ParamsController_PH_Format(out[], const iOutLen, const sFormat[]);
+
+/**
+ * Регистрация ключа в глобальной группе без колбека (проактивный режим).
+ */
+stock ParamsController_PH_RegisterKey(const sKey[]) {
+    ParamsController_PH_RegisterGroupKey(ParamsController_PH_GetGlobalGroup(), sKey);
+}
+
+/**
+ * Установка колбека для ключа в глобальной группе.
+ */
+stock ParamsController_PH_SetKeyCallback(const sKey[], const sCallback[]) {
+    ParamsController_PH_SetGroupKeyCallback(ParamsController_PH_GetGlobalGroup(), sKey, sCallback);
+}
+
+/**
+ * Регистрация ключа в группе с одновременной установкой колбека.
+ */
+stock ParamsController_PH_RegGroupKey(const T_PHGroup:hGroup, const sKey[], const sCallback[]) {
+    ParamsController_PH_RegisterGroupKey(hGroup, sKey);
+    ParamsController_PH_SetGroupKeyCallback(hGroup, sKey, sCallback);
+}
+
+/**
+ * Регистрация ключа в глобальной группе с одновременной установкой колбека.
+ */
+stock ParamsController_PH_RegKey(const sKey[], const sCallback[]) {
+    ParamsController_PH_RegGroupKey(ParamsController_PH_GetGlobalGroup(), sKey, sCallback);
+}
+
 // Cvars
 
 stock PCCvar_Const(const name[], const value[]) {
