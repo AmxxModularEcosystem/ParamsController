@@ -40,7 +40,7 @@ API_PH_Key_Register() {
 }
 
 @API_PH_Set() {
-    enum {Arg_Group = 1, Arg_Key, Arg_Value}
+    enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
@@ -48,15 +48,18 @@ API_PH_Key_Register() {
 
     static sKey[PH_KEY_MAX_LEN];
     get_string(Arg_Key, sKey, charsmax(sKey));
+
+    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
 
     static sValue[PH_VALUE_MAX_LEN];
     get_string(Arg_Value, sValue, charsmax(sValue));
 
-    PHGroup_SetValue(hGroup, sKey, sValue);
+    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
 }
 
 @API_PH_SetInt() {
-    enum {Arg_Group = 1, Arg_Key, Arg_Value}
+    enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
@@ -64,15 +67,18 @@ API_PH_Key_Register() {
 
     static sKey[PH_KEY_MAX_LEN];
     get_string(Arg_Key, sKey, charsmax(sKey));
+
+    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
 
     static sValue[PH_VALUE_MAX_LEN];
     num_to_str(get_param(Arg_Value), sValue, charsmax(sValue));
 
-    PHGroup_SetValue(hGroup, sKey, sValue);
+    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
 }
 
 @API_PH_SetFloat() {
-    enum {Arg_Group = 1, Arg_Key, Arg_Value}
+    enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
@@ -81,8 +87,11 @@ API_PH_Key_Register() {
     static sKey[PH_KEY_MAX_LEN];
     get_string(Arg_Key, sKey, charsmax(sKey));
 
+    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
+
     static sValue[PH_VALUE_MAX_LEN];
     format(sValue, charsmax(sValue), "%.2f", get_param_f(Arg_Value));
 
-    PHGroup_SetValue(hGroup, sKey, sValue);
+    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
 }

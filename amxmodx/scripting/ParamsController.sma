@@ -6,6 +6,7 @@
 #include "ParamsController/Objects/Param"
 #include "ParamsController/Placeholders/Objects/PHGroup"
 #include "ParamsController/DefaultObjects/Registrar"
+#include "ParamsController/DefaultObjects/PlaceholderRegistrar"
 
 public stock const PluginName[] = "Params Controller";
 public stock const PluginVersion[] = PARAMS_CONTROLLER_VERSION;
@@ -30,6 +31,7 @@ PluginInit() {
     Param_Init();
     PHGroup_Init();
     DefaultObjects_ParamType_Register();
+    DefaultObjects_Placeholder_Register();
 
     // Тут регать типы параметров
     Forwards_RegAndCall("ParamsController_OnRegisterTypes", ET_IGNORE);
@@ -41,6 +43,14 @@ PluginInit() {
 
     // После этого можно юзать типы и плейсхолдеры
     Forwards_RegAndCall("ParamsController_OnInited", ET_IGNORE);
+}
+
+public client_authorized(id, const sAuthID[]) {
+    if (!IsPluginInited()) {
+        return;
+    }
+
+    DefaultObjects_Placeholder_OnClientAuth(id, sAuthID);  // id → playerIndex внутри
 }
 
 @SrvCmd_Types() {

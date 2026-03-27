@@ -1330,6 +1330,14 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
 #define PH_CALLBACK_MAX_LEN         64
 #define PH_FORMAT_MAX_LEN           4096
 
+// --- Default placeholders ---
+
+stock const DEFAULT_PH_GLOBAL_MAP_KEY[] = "map";
+
+stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
+stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
+#define DEFAULT_PH_PLAYER_AUTHID_MAX_LEN 32
+
 enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
 
 /**
@@ -1453,36 +1461,39 @@ native ParamsController_PH_SetFloatValue(const Float:fValue);
 /**
  * Проактивная установка строкового значения ключа в группе (вне колбека).
  *
- * @param   hGroup  Хендлер группы
- * @param   sKey    Ключ плейсхолдера
- * @param   sValue  Устанавливаемое значение
+ * @param   hGroup      Хендлер группы
+ * @param   sKey        Ключ плейсхолдера
+ * @param   sContextKey Контекстный ключ (например, индекс игрока в виде строки)
+ * @param   sValue      Устанавливаемое значение
  *
  * @noreturn
  */
-native ParamsController_PH_Set(const T_PHGroup:hGroup, const sKey[], const sValue[]);
+native ParamsController_PH_Set(const T_PHGroup:hGroup, const sKey[], const sContextKey[], const sValue[]);
 
 /**
  * Проактивная установка числового (int) значения ключа в группе (вне колбека).
  *
- * @param   hGroup  Хендлер группы
- * @param   sKey    Ключ плейсхолдера
- * @param   iValue  Устанавливаемое значение
+ * @param   hGroup      Хендлер группы
+ * @param   sKey        Ключ плейсхолдера
+ * @param   sContextKey Контекстный ключ
+ * @param   iValue      Устанавливаемое значение
  *
  * @noreturn
  */
-native ParamsController_PH_SetInt(const T_PHGroup:hGroup, const sKey[], const any:iValue);
+native ParamsController_PH_SetInt(const T_PHGroup:hGroup, const sKey[], const sContextKey[], const any:iValue);
 
 /**
  * Проактивная установка числового (float) значения ключа в группе (вне колбека).
  * Форматируется с точностью до 2 знаков после запятой.
  *
- * @param   hGroup  Хендлер группы
- * @param   sKey    Ключ плейсхолдера
- * @param   fValue  Устанавливаемое значение
+ * @param   hGroup      Хендлер группы
+ * @param   sKey        Ключ плейсхолдера
+ * @param   sContextKey Контекстный ключ
+ * @param   fValue      Устанавливаемое значение
  *
  * @noreturn
  */
-native ParamsController_PH_SetFloat(const T_PHGroup:hGroup, const sKey[], const Float:fValue);
+native ParamsController_PH_SetFloat(const T_PHGroup:hGroup, const sKey[], const sContextKey[], const Float:fValue);
 
 /**
  * Замена плейсхолдеров в строке sFormat, результат записывается в out.
@@ -1496,6 +1507,49 @@ native ParamsController_PH_SetFloat(const T_PHGroup:hGroup, const sKey[], const 
  * @noreturn
  */
 native ParamsController_PH_Format(out[], const iOutLen, const sFormat[]);
+
+/**
+ * Помещение числового контекста на стек группы.
+ * Удобная обёртка над *_PushContext для случаев, когда контекстный ключ — число (например, индекс игрока).
+ *
+ * @param   hGroup      Хендлер группы
+ * @param   iContextKey Числовой идентификатор контекста
+ *
+ * @noreturn
+ */
+stock ParamsController_PH_PushIntContext(const T_PHGroup:hGroup, const any:iContextKey) {
+    static sContextKey[12];
+    num_to_str(iContextKey, sContextKey, charsmax(sContextKey));
+    ParamsController_PH_PushContext(hGroup, sContextKey);
+}
+
+/**
+ * Проактивная установка строкового значения с числовым контекстным ключом.
+ * Удобная обёртка для групп, где контекст — число (например, индекс игрока).
+ */
+stock ParamsController_PH_SetForInt(const T_PHGroup:hGroup, const sKey[], const any:iContextKey, const sValue[]) {
+    static sContextKey[12];
+    num_to_str(iContextKey, sContextKey, charsmax(sContextKey));
+    ParamsController_PH_Set(hGroup, sKey, sContextKey, sValue);
+}
+
+/**
+ * Проактивная установка числового (int) значения с числовым контекстным ключом.
+ */
+stock ParamsController_PH_SetIntForInt(const T_PHGroup:hGroup, const sKey[], const any:iContextKey, const any:iValue) {
+    static sContextKey[12];
+    num_to_str(iContextKey, sContextKey, charsmax(sContextKey));
+    ParamsController_PH_SetInt(hGroup, sKey, sContextKey, iValue);
+}
+
+/**
+ * Проактивная установка числового (float) значения с числовым контекстным ключом.
+ */
+stock ParamsController_PH_SetFloatForInt(const T_PHGroup:hGroup, const sKey[], const any:iContextKey, const Float:fValue) {
+    static sContextKey[12];
+    num_to_str(iContextKey, sContextKey, charsmax(sContextKey));
+    ParamsController_PH_SetFloat(hGroup, sKey, sContextKey, fValue);
+}
 
 /**
  * Регистрация ключа в глобальной группе без колбека (проактивный режим).

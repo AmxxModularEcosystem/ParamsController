@@ -9,7 +9,7 @@
 enum _:S_PHGroup {
     PHGroup_Prefix[PH_GROUP_PREFIX_MAX_LEN],
     Trie:PHGroup_Callbacks,                             // ключ → хендлер форварда (INVALID_HANDLE если колбека нет)
-    Trie:PHGroup_Values,                                // ключ → текущее значение (строка)
+    Trie:PHGroup_Values,                                // "ключ:контекст" → текущее значение (строка)
     Stack:PHGroup_ContextStack,                         // стек сохранённых предыдущих контекстов
     PHGroup_CurrentContext[PH_CONTEXT_KEY_MAX_LEN],     // текущий активный контекст (вершина стека)
 }
@@ -20,6 +20,7 @@ static T_PHGroup:g_hPHGlobalGroup = Invalid_PHGroup;
 
 static T_PHGroup:g_hCurrentPHGroup = Invalid_PHGroup;
 static g_sCurrentPHKey[PH_KEY_MAX_LEN];
+static g_sCurrentPHContext[PH_CONTEXT_KEY_MAX_LEN];
 
 PHGroup_Init() {
     if (g_aPHGroups == Invalid_Array) {
@@ -67,6 +68,15 @@ static PHGroup_Get(const T_PHGroup:hGroup, groupData[S_PHGroup]) {
 
 static PHGroup_Update(const T_PHGroup:hGroup, const groupData[S_PHGroup]) {
     ArraySetArray(g_aPHGroups, _:hGroup, groupData);
+}
+
+// Составной ключ для Values Trie: "key:contextKey" или просто "key" если контекст пустой
+static PHGroup_BuildValueKey(const sKey[], const sContextKey[], sOut[], const iOutLen) {
+    if (sContextKey[0] == 0) {
+        copy(sOut, iOutLen, sKey);
+    } else {
+        format(sOut, iOutLen, "%s:%s", sKey, sContextKey);
+    }
 }
 
 PHGroup_RegisterKey(const T_PHGroup:hGroup, const sKey[]) {
@@ -127,16 +137,24 @@ PHGroup_PopContext(const T_PHGroup:hGroup) {
     PHGroup_Update(hGroup, groupData);
 }
 
-PHGroup_SetValue(const T_PHGroup:hGroup, const sKey[], const sValue[]) {
+PHGroup_SetValue(const T_PHGroup:hGroup, const sKey[], const sContextKey[], const sValue[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
-    TrieSetString(groupData[PHGroup_Values], sKey, sValue);
+
+    static sValueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
+    PHGroup_BuildValueKey(sKey, sContextKey, sValueKey, charsmax(sValueKey));
+
+    TrieSetString(groupData[PHGroup_Values], sValueKey, sValue);
 }
 
-static bool:PHGroup_GetValue(const T_PHGroup:hGroup, const sKey[], sOut[], const iOutLen) {
+static bool:PHGroup_GetValue(const T_PHGroup:hGroup, const sKey[], const sContextKey[], sOut[], const iOutLen) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
-    return bool:TrieGetString(groupData[PHGroup_Values], sKey, sOut, iOutLen);
+
+    static sValueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
+    PHGroup_BuildValueKey(sKey, sContextKey, sValueKey, charsmax(sValueKey));
+
+    return bool:TrieGetString(groupData[PHGroup_Values], sValueKey, sOut, iOutLen);
 }
 
 static bool:PHGroup_IsKeyRegistered(const T_PHGroup:hGroup, const sKey[]) {
@@ -145,7 +163,7 @@ static bool:PHGroup_IsKeyRegistered(const T_PHGroup:hGroup, const sKey[]) {
     return bool:TrieKeyExists(groupData[PHGroup_Callbacks], sKey);
 }
 
-static PHGroup_CallCallback(const T_PHGroup:hGroup, const sKey[]) {
+static PHGroup_CallCallback(const T_PHGroup:hGroup, const sKey[], const sContextKey[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
@@ -156,12 +174,14 @@ static PHGroup_CallCallback(const T_PHGroup:hGroup, const sKey[]) {
 
     g_hCurrentPHGroup = hGroup;
     copy(g_sCurrentPHKey, charsmax(g_sCurrentPHKey), sKey);
+    copy(g_sCurrentPHContext, charsmax(g_sCurrentPHContext), sContextKey);
 
     new iRet;
-    ExecuteForward(iForward, iRet, sKey, groupData[PHGroup_CurrentContext]);
+    ExecuteForward(iForward, iRet, sKey, sContextKey);
 
     g_hCurrentPHGroup = Invalid_PHGroup;
     g_sCurrentPHKey[0] = 0;
+    g_sCurrentPHContext[0] = 0;
 }
 
 PHGroup_FormatString(const sFormat[], sOut[], const iOutLen) {
@@ -226,10 +246,16 @@ PHGroup_FormatString(const sFormat[], sOut[], const iOutLen) {
             : PHGroup_Find(sPrefix);
 
         if (hGroup != Invalid_PHGroup && PHGroup_IsKeyRegistered(hGroup, sKey)) {
-            PHGroup_CallCallback(hGroup, sKey);
+            // Захватываем контекст до вызова колбека
+            static sCurrentContext[PH_CONTEXT_KEY_MAX_LEN];
+            new groupData[S_PHGroup];
+            PHGroup_Get(hGroup, groupData);
+            copy(sCurrentContext, charsmax(sCurrentContext), groupData[PHGroup_CurrentContext]);
+
+            PHGroup_CallCallback(hGroup, sKey, sCurrentContext);
 
             static sValue[PH_VALUE_MAX_LEN];
-            if (PHGroup_GetValue(hGroup, sKey, sValue, charsmax(sValue))) {
+            if (PHGroup_GetValue(hGroup, sKey, sCurrentContext, sValue, charsmax(sValue))) {
                 new iValueLen = strlen(sValue);
                 for (new k = 0; k < iValueLen && iOutPos < iOutLen - 1; ++k) {
                     sOut[iOutPos++] = sValue[k];
@@ -257,7 +283,7 @@ bool:PHGroup_IsInCallback() {
 }
 
 PHGroup_SetCurrentValue(const sValue[]) {
-    PHGroup_SetValue(g_hCurrentPHGroup, g_sCurrentPHKey, sValue);
+    PHGroup_SetValue(g_hCurrentPHGroup, g_sCurrentPHKey, g_sCurrentPHContext, sValue);
 }
 
 API_CheckCurrentPH() {
