@@ -92,9 +92,9 @@ Trie:Param_ReadList(
     const Array:params,
     const JSON:objectJson,
     &Trie:p = Invalid_Trie,
-    &E_ParamsReadErrorType:iErrType = ParamsReadError_None,
-    sErrParamName[] = "",
-    const iErrParamNameLen = 0
+    &E_ParamsReadErrorType:errType = ParamsReadError_None,
+    errParamName[] = "",
+    const errParamNameLen = 0
 ) {
     if (p == Invalid_Trie) {
         p = TrieCreate();
@@ -110,13 +110,13 @@ Trie:Param_ReadList(
         new paramObject[S_Param];
         Param_Get(param, paramObject);
 
-        if (iErrParamNameLen > 0) {
-            copy(sErrParamName, iErrParamNameLen, paramObject[Param_Key]);
+        if (errParamNameLen > 0) {
+            copy(errParamName, errParamNameLen, paramObject[Param_Key]);
         }
 
         if (!json_object_has_value(objectJson, paramObject[Param_Key])) {
             if (paramObject[Param_Required]) {
-                iErrType = ParamsReadError_RequiredParamNotPresented;
+                errType = ParamsReadError_RequiredParamNotPresented;
                 return p;
             }
 
@@ -128,7 +128,7 @@ Trie:Param_ReadList(
         json_free(valueJson);
 
         if (!ret) {
-            iErrType = ParamsReadError_ParamValueIsInvalid;
+            errType = ParamsReadError_ParamValueIsInvalid;
             return p;
         }
 
@@ -136,6 +136,6 @@ Trie:Param_ReadList(
             abort(AMX_ERR_GENERAL, "Param type '%s' dont write value with key '%s' to trie.", ParamType_iGetName(paramObject[Param_Type]), paramObject[Param_Key]);
         }
     }
-    
+
     return p;
 }

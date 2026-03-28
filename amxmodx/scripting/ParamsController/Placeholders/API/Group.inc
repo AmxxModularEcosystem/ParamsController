@@ -15,20 +15,20 @@ T_PHGroup:@API_PH_RegisterGroup() {
 
     API_CheckPluginInited();
 
-    static sPrefix[PH_GROUP_PREFIX_MAX_LEN];
-    get_string(Arg_Prefix, sPrefix, charsmax(sPrefix));
+    static prefix[PH_GROUP_PREFIX_MAX_LEN];
+    get_string(Arg_Prefix, prefix, charsmax(prefix));
 
-    if (sPrefix[0] == 0) {
+    if (prefix[0] == 0) {
         abort(AMX_ERR_PARAMS, "PH group prefix must not be empty.");
         return Invalid_PHGroup;
     }
 
-    if (PHGroup_Find(sPrefix) != Invalid_PHGroup) {
-        abort(AMX_ERR_PARAMS, "PH group with prefix '%s' is already registered.", sPrefix);
+    if (PHGroup_Find(prefix) != Invalid_PHGroup) {
+        abort(AMX_ERR_PARAMS, "PH group with prefix '%s' is already registered.", prefix);
         return Invalid_PHGroup;
     }
 
-    return PHGroup_Construct(sPrefix);
+    return PHGroup_Construct(prefix);
 }
 
 T_PHGroup:@API_PH_FindGroup() {
@@ -36,10 +36,10 @@ T_PHGroup:@API_PH_FindGroup() {
 
     API_CheckPluginInited();
 
-    static sPrefix[PH_GROUP_PREFIX_MAX_LEN];
-    get_string(Arg_Prefix, sPrefix, charsmax(sPrefix));
+    static prefix[PH_GROUP_PREFIX_MAX_LEN];
+    get_string(Arg_Prefix, prefix, charsmax(prefix));
 
-    return PHGroup_Find(sPrefix);
+    return PHGroup_Find(prefix);
 }
 
 T_PHGroup:@API_PH_GetGlobalGroup() {

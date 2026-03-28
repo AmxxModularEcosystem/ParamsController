@@ -14,100 +14,100 @@ enum _:S_PHGroup {
     PHGroup_CurrentContext[PH_CONTEXT_KEY_MAX_LEN],     // текущий активный контекст (вершина стека)
 }
 
-static Array:g_aPHGroups = Invalid_Array;
-static Trie:g_tPHGroupsMap = Invalid_Trie;
-static T_PHGroup:g_hPHGlobalGroup = Invalid_PHGroup;
+static Array:PHGroups = Invalid_Array;
+static Trie:PHGroupsMap = Invalid_Trie;
+static T_PHGroup:PHGlobalGroup = Invalid_PHGroup;
 
-static T_PHGroup:g_hCurrentPHGroup = Invalid_PHGroup;
-static g_sCurrentPHKey[PH_KEY_MAX_LEN];
-static g_sCurrentPHContext[PH_CONTEXT_KEY_MAX_LEN];
+static T_PHGroup:CurrentPHGroup = Invalid_PHGroup;
+static CurrentPHKey[PH_KEY_MAX_LEN];
+static CurrentPHContext[PH_CONTEXT_KEY_MAX_LEN];
 
 PHGroup_Init() {
-    if (g_aPHGroups == Invalid_Array) {
-        g_aPHGroups = ArrayCreate(S_PHGroup, 1);
+    if (PHGroups == Invalid_Array) {
+        PHGroups = ArrayCreate(S_PHGroup, 1);
     }
 
-    if (g_tPHGroupsMap == Invalid_Trie) {
-        g_tPHGroupsMap = TrieCreate();
+    if (PHGroupsMap == Invalid_Trie) {
+        PHGroupsMap = TrieCreate();
     }
 
-    g_hPHGlobalGroup = PHGroup_Construct("");
+    PHGlobalGroup = PHGroup_Construct("");
 }
 
-T_PHGroup:PHGroup_Construct(const sPrefix[]) {
+T_PHGroup:PHGroup_Construct(const prefix[]) {
     new groupData[S_PHGroup];
 
-    copy(groupData[PHGroup_Prefix], charsmax(groupData[PHGroup_Prefix]), sPrefix);
+    copy(groupData[PHGroup_Prefix], charsmax(groupData[PHGroup_Prefix]), prefix);
     groupData[PHGroup_Callbacks] = TrieCreate();
     groupData[PHGroup_Values] = TrieCreate();
     groupData[PHGroup_ContextStack] = Invalid_Stack;
     groupData[PHGroup_CurrentContext][0] = 0;
 
-    new T_PHGroup:hGroup = T_PHGroup:ArrayPushArray(g_aPHGroups, groupData);
+    new T_PHGroup:hGroup = T_PHGroup:ArrayPushArray(PHGroups, groupData);
 
-    if (sPrefix[0] != 0) {
-        TrieSetCell(g_tPHGroupsMap, sPrefix, hGroup);
+    if (prefix[0] != 0) {
+        TrieSetCell(PHGroupsMap, prefix, hGroup);
     }
 
     return hGroup;
 }
 
-T_PHGroup:PHGroup_Find(const sPrefix[]) {
+T_PHGroup:PHGroup_Find(const prefix[]) {
     new T_PHGroup:hGroup = Invalid_PHGroup;
-    TrieGetCell(g_tPHGroupsMap, sPrefix, hGroup);
+    TrieGetCell(PHGroupsMap, prefix, hGroup);
     return hGroup;
 }
 
 T_PHGroup:PHGroup_GetGlobal() {
-    return g_hPHGlobalGroup;
+    return PHGlobalGroup;
 }
 
 static PHGroup_Get(const T_PHGroup:hGroup, groupData[S_PHGroup]) {
-    ArrayGetArray(g_aPHGroups, _:hGroup, groupData);
+    ArrayGetArray(PHGroups, _:hGroup, groupData);
 }
 
 static PHGroup_Update(const T_PHGroup:hGroup, const groupData[S_PHGroup]) {
-    ArraySetArray(g_aPHGroups, _:hGroup, groupData);
+    ArraySetArray(PHGroups, _:hGroup, groupData);
 }
 
 // Составной ключ для Values Trie: "key:contextKey" или просто "key" если контекст пустой
-static PHGroup_BuildValueKey(const sKey[], const sContextKey[], sOut[], const iOutLen) {
-    if (sContextKey[0] == 0) {
-        copy(sOut, iOutLen, sKey);
+static PHGroup_BuildValueKey(const key[], const contextKey[], out[], const outLen) {
+    if (contextKey[0] == 0) {
+        copy(out, outLen, key);
     } else {
-        format(sOut, iOutLen, "%s:%s", sKey, sContextKey);
+        format(out, outLen, "%s:%s", key, contextKey);
     }
 }
 
-PHGroup_RegisterKey(const T_PHGroup:hGroup, const sKey[]) {
+PHGroup_RegisterKey(const T_PHGroup:hGroup, const key[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
-    if (!TrieKeyExists(groupData[PHGroup_Callbacks], sKey)) {
-        TrieSetCell(groupData[PHGroup_Callbacks], sKey, INVALID_HANDLE);
+    if (!TrieKeyExists(groupData[PHGroup_Callbacks], key)) {
+        TrieSetCell(groupData[PHGroup_Callbacks], key, INVALID_HANDLE);
     }
 }
 
-PHGroup_SetKeyCallback(const T_PHGroup:hGroup, const sKey[], const sCallback[], const pluginIndex) {
+PHGroup_SetKeyCallback(const T_PHGroup:hGroup, const key[], const callback[], const pluginIndex) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
-    new iOldForward;
-    if (TrieGetCell(groupData[PHGroup_Callbacks], sKey, iOldForward) && iOldForward != INVALID_HANDLE) {
-        DestroyForward(iOldForward);
+    new oldFwd;
+    if (TrieGetCell(groupData[PHGroup_Callbacks], key, oldFwd) && oldFwd != INVALID_HANDLE) {
+        DestroyForward(oldFwd);
     }
 
-    // (const sKey[], const sContextKey[])
-    new iForward = CreateOneForward(pluginIndex, sCallback, FP_STRING, FP_STRING);
-    if (iForward == INVALID_HANDLE) {
-        abort(AMX_ERR_GENERAL, "Can't create PH callback by '%s' func of #%d plugin.", sCallback, pluginIndex);
+    // (const key[], const contextKey[])
+    new fwd = CreateOneForward(pluginIndex, callback, FP_STRING, FP_STRING);
+    if (fwd == INVALID_HANDLE) {
+        abort(AMX_ERR_GENERAL, "Can't create PH callback by '%s' func of #%d plugin.", callback, pluginIndex);
         return;
     }
 
-    TrieSetCell(groupData[PHGroup_Callbacks], sKey, iForward);
+    TrieSetCell(groupData[PHGroup_Callbacks], key, fwd);
 }
 
-PHGroup_PushContext(const T_PHGroup:hGroup, const sContextKey[]) {
+PHGroup_PushContext(const T_PHGroup:hGroup, const contextKey[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
@@ -116,7 +116,7 @@ PHGroup_PushContext(const T_PHGroup:hGroup, const sContextKey[]) {
     }
 
     PushStackArray(groupData[PHGroup_ContextStack], groupData[PHGroup_CurrentContext], PH_CONTEXT_KEY_MAX_LEN);
-    copy(groupData[PHGroup_CurrentContext], charsmax(groupData[PHGroup_CurrentContext]), sContextKey);
+    copy(groupData[PHGroup_CurrentContext], charsmax(groupData[PHGroup_CurrentContext]), contextKey);
 
     PHGroup_Update(hGroup, groupData);
 }
@@ -137,153 +137,153 @@ PHGroup_PopContext(const T_PHGroup:hGroup) {
     PHGroup_Update(hGroup, groupData);
 }
 
-PHGroup_SetValue(const T_PHGroup:hGroup, const sKey[], const sContextKey[], const sValue[]) {
+PHGroup_SetValue(const T_PHGroup:hGroup, const key[], const contextKey[], const value[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
-    static sValueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
-    PHGroup_BuildValueKey(sKey, sContextKey, sValueKey, charsmax(sValueKey));
+    static valueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
+    PHGroup_BuildValueKey(key, contextKey, valueKey, charsmax(valueKey));
 
-    TrieSetString(groupData[PHGroup_Values], sValueKey, sValue);
+    TrieSetString(groupData[PHGroup_Values], valueKey, value);
 }
 
-static bool:PHGroup_GetValue(const T_PHGroup:hGroup, const sKey[], const sContextKey[], sOut[], const iOutLen) {
+static bool:PHGroup_GetValue(const T_PHGroup:hGroup, const key[], const contextKey[], out[], const outLen) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
-    static sValueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
-    PHGroup_BuildValueKey(sKey, sContextKey, sValueKey, charsmax(sValueKey));
+    static valueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
+    PHGroup_BuildValueKey(key, contextKey, valueKey, charsmax(valueKey));
 
-    return bool:TrieGetString(groupData[PHGroup_Values], sValueKey, sOut, iOutLen);
+    return bool:TrieGetString(groupData[PHGroup_Values], valueKey, out, outLen);
 }
 
-static bool:PHGroup_IsKeyRegistered(const T_PHGroup:hGroup, const sKey[]) {
+static bool:PHGroup_IsKeyRegistered(const T_PHGroup:hGroup, const key[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
-    return bool:TrieKeyExists(groupData[PHGroup_Callbacks], sKey);
+    return bool:TrieKeyExists(groupData[PHGroup_Callbacks], key);
 }
 
-static PHGroup_CallCallback(const T_PHGroup:hGroup, const sKey[], const sContextKey[]) {
+static PHGroup_CallCallback(const T_PHGroup:hGroup, const key[], const contextKey[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(hGroup, groupData);
 
-    new iForward;
-    if (!TrieGetCell(groupData[PHGroup_Callbacks], sKey, iForward) || iForward == INVALID_HANDLE) {
+    new fwd;
+    if (!TrieGetCell(groupData[PHGroup_Callbacks], key, fwd) || fwd == INVALID_HANDLE) {
         return;
     }
 
-    g_hCurrentPHGroup = hGroup;
-    copy(g_sCurrentPHKey, charsmax(g_sCurrentPHKey), sKey);
-    copy(g_sCurrentPHContext, charsmax(g_sCurrentPHContext), sContextKey);
+    CurrentPHGroup = hGroup;
+    copy(CurrentPHKey, charsmax(CurrentPHKey), key);
+    copy(CurrentPHContext, charsmax(CurrentPHContext), contextKey);
 
-    new iRet;
-    ExecuteForward(iForward, iRet, sKey, sContextKey);
+    new ret;
+    ExecuteForward(fwd, ret, key, contextKey);
 
-    g_hCurrentPHGroup = Invalid_PHGroup;
-    g_sCurrentPHKey[0] = 0;
-    g_sCurrentPHContext[0] = 0;
+    CurrentPHGroup = Invalid_PHGroup;
+    CurrentPHKey[0] = 0;
+    CurrentPHContext[0] = 0;
 }
 
-PHGroup_FormatString(const sFormat[], sOut[], const iOutLen) {
-    if (iOutLen < 1) {
+PHGroup_FormatString(const formatStr[], out[], const outLen) {
+    if (outLen < 1) {
         return;
     }
 
-    new iOutPos = 0;
-    new iInPos = 0;
-    new iFormatLen = strlen(sFormat);
+    new outPos = 0;
+    new inPos = 0;
+    new formatLen = strlen(formatStr);
 
-    while (iInPos < iFormatLen && iOutPos < iOutLen - 1) {
-        if (sFormat[iInPos] != '{') {
-            sOut[iOutPos++] = sFormat[iInPos++];
+    while (inPos < formatLen && outPos < outLen - 1) {
+        if (formatStr[inPos] != '{') {
+            out[outPos++] = formatStr[inPos++];
             continue;
         }
 
-        new iClosing = iInPos + 1;
-        while (iClosing < iFormatLen && sFormat[iClosing] != '}') {
-            ++iClosing;
+        new closing = inPos + 1;
+        while (closing < formatLen && formatStr[closing] != '}') {
+            ++closing;
         }
 
-        if (iClosing >= iFormatLen) {
+        if (closing >= formatLen) {
             // Незакрытая скобка — выводим как есть
-            sOut[iOutPos++] = sFormat[iInPos++];
+            out[outPos++] = formatStr[inPos++];
             continue;
         }
 
-        static sPlaceholder[PH_GROUP_PREFIX_MAX_LEN + PH_KEY_MAX_LEN + 2];
-        new iPlaceholderLen = min(iClosing - iInPos - 1, charsmax(sPlaceholder));
+        static placeholder[PH_GROUP_PREFIX_MAX_LEN + PH_KEY_MAX_LEN + 2];
+        new placeholderLen = min(closing - inPos - 1, charsmax(placeholder));
 
-        for (new k = 0; k < iPlaceholderLen; ++k) {
-            sPlaceholder[k] = sFormat[iInPos + 1 + k];
+        for (new k = 0; k < placeholderLen; ++k) {
+            placeholder[k] = formatStr[inPos + 1 + k];
         }
-        sPlaceholder[iPlaceholderLen] = 0;
+        placeholder[placeholderLen] = 0;
 
-        static sPrefix[PH_GROUP_PREFIX_MAX_LEN];
-        static sKey[PH_KEY_MAX_LEN];
+        static prefix[PH_GROUP_PREFIX_MAX_LEN];
+        static key[PH_KEY_MAX_LEN];
 
-        new iColon = -1;
-        for (new k = 0; k < iPlaceholderLen; ++k) {
-            if (sPlaceholder[k] == ':') {
-                iColon = k;
+        new colon = -1;
+        for (new k = 0; k < placeholderLen; ++k) {
+            if (placeholder[k] == ':') {
+                colon = k;
                 break;
             }
         }
 
-        if (iColon < 0) {
-            sPrefix[0] = 0;
-            copy(sKey, charsmax(sKey), sPlaceholder);
+        if (colon < 0) {
+            prefix[0] = 0;
+            copy(key, charsmax(key), placeholder);
         } else {
-            new iPrefixLen = min(iColon, charsmax(sPrefix));
-            for (new k = 0; k < iPrefixLen; ++k) {
-                sPrefix[k] = sPlaceholder[k];
+            new prefixLen = min(colon, charsmax(prefix));
+            for (new k = 0; k < prefixLen; ++k) {
+                prefix[k] = placeholder[k];
             }
-            sPrefix[iPrefixLen] = 0;
-            copy(sKey, charsmax(sKey), sPlaceholder[iColon + 1]);
+            prefix[prefixLen] = 0;
+            copy(key, charsmax(key), placeholder[colon + 1]);
         }
 
-        new T_PHGroup:hGroup = (sPrefix[0] == 0)
-            ? g_hPHGlobalGroup
-            : PHGroup_Find(sPrefix);
+        new T_PHGroup:hGroup = (prefix[0] == 0)
+            ? PHGlobalGroup
+            : PHGroup_Find(prefix);
 
-        if (hGroup != Invalid_PHGroup && PHGroup_IsKeyRegistered(hGroup, sKey)) {
+        if (hGroup != Invalid_PHGroup && PHGroup_IsKeyRegistered(hGroup, key)) {
             // Захватываем контекст до вызова колбека
-            static sCurrentContext[PH_CONTEXT_KEY_MAX_LEN];
+            static currentContext[PH_CONTEXT_KEY_MAX_LEN];
             new groupData[S_PHGroup];
             PHGroup_Get(hGroup, groupData);
-            copy(sCurrentContext, charsmax(sCurrentContext), groupData[PHGroup_CurrentContext]);
+            copy(currentContext, charsmax(currentContext), groupData[PHGroup_CurrentContext]);
 
-            PHGroup_CallCallback(hGroup, sKey, sCurrentContext);
+            PHGroup_CallCallback(hGroup, key, currentContext);
 
-            static sValue[PH_VALUE_MAX_LEN];
-            if (PHGroup_GetValue(hGroup, sKey, sCurrentContext, sValue, charsmax(sValue))) {
-                new iValueLen = strlen(sValue);
-                for (new k = 0; k < iValueLen && iOutPos < iOutLen - 1; ++k) {
-                    sOut[iOutPos++] = sValue[k];
+            static value[PH_VALUE_MAX_LEN];
+            if (PHGroup_GetValue(hGroup, key, currentContext, value, charsmax(value))) {
+                new valueLen = strlen(value);
+                for (new k = 0; k < valueLen && outPos < outLen - 1; ++k) {
+                    out[outPos++] = value[k];
                 }
             }
         } else {
             // Неизвестная группа или незарегистрированный ключ — сохраняем как есть
-            sOut[iOutPos++] = '{';
-            for (new k = 0; k < iPlaceholderLen && iOutPos < iOutLen - 1; ++k) {
-                sOut[iOutPos++] = sPlaceholder[k];
+            out[outPos++] = '{';
+            for (new k = 0; k < placeholderLen && outPos < outLen - 1; ++k) {
+                out[outPos++] = placeholder[k];
             }
-            if (iOutPos < iOutLen - 1) {
-                sOut[iOutPos++] = '}';
+            if (outPos < outLen - 1) {
+                out[outPos++] = '}';
             }
         }
 
-        iInPos = iClosing + 1;
+        inPos = closing + 1;
     }
 
-    sOut[iOutPos] = 0;
+    out[outPos] = 0;
 }
 
 bool:PHGroup_IsInCallback() {
-    return g_hCurrentPHGroup != Invalid_PHGroup;
+    return CurrentPHGroup != Invalid_PHGroup;
 }
 
-PHGroup_SetCurrentValue(const sValue[]) {
-    PHGroup_SetValue(g_hCurrentPHGroup, g_sCurrentPHKey, g_sCurrentPHContext, sValue);
+PHGroup_SetCurrentValue(const value[]) {
+    PHGroup_SetValue(CurrentPHGroup, CurrentPHKey, CurrentPHContext, value);
 }
 
 API_CheckCurrentPH() {

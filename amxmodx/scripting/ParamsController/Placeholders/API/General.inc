@@ -14,13 +14,13 @@ API_PH_General_Register() {
 
     API_CheckPluginInited();
 
-    static sFormat[PH_FORMAT_MAX_LEN];
-    get_string(Arg_Format, sFormat, charsmax(sFormat));
+    static formatStr[PH_FORMAT_MAX_LEN];
+    get_string(Arg_Format, formatStr, charsmax(formatStr));
 
-    static sOut[PH_FORMAT_MAX_LEN];
-    PHGroup_FormatString(sFormat, sOut, charsmax(sOut));
+    static out[PH_FORMAT_MAX_LEN];
+    PHGroup_FormatString(formatStr, out, charsmax(out));
 
-    set_string(Arg_Out, sOut, get_param(Arg_OutLen));
+    set_string(Arg_Out, out, get_param(Arg_OutLen));
 }
 
 @API_PH_SetValue() {
@@ -29,10 +29,10 @@ API_PH_General_Register() {
     API_CheckPluginInited();
     API_CheckCurrentPH();
 
-    static sValue[PH_VALUE_MAX_LEN];
-    get_string(Arg_Value, sValue, charsmax(sValue));
+    static value[PH_VALUE_MAX_LEN];
+    get_string(Arg_Value, value, charsmax(value));
 
-    PHGroup_SetCurrentValue(sValue);
+    PHGroup_SetCurrentValue(value);
 }
 
 @API_PH_SetIntValue() {
@@ -41,10 +41,10 @@ API_PH_General_Register() {
     API_CheckPluginInited();
     API_CheckCurrentPH();
 
-    static sValue[PH_VALUE_MAX_LEN];
-    num_to_str(get_param(Arg_Value), sValue, charsmax(sValue));
+    static value[PH_VALUE_MAX_LEN];
+    num_to_str(get_param(Arg_Value), value, charsmax(value));
 
-    PHGroup_SetCurrentValue(sValue);
+    PHGroup_SetCurrentValue(value);
 }
 
 @API_PH_SetFloatValue() {
@@ -53,8 +53,8 @@ API_PH_General_Register() {
     API_CheckPluginInited();
     API_CheckCurrentPH();
 
-    static sValue[PH_VALUE_MAX_LEN];
-    format(sValue, charsmax(sValue), "%.2f", get_param_f(Arg_Value));
+    static value[PH_VALUE_MAX_LEN];
+    format(value, charsmax(value), "%.2f", get_param_f(Arg_Value));
 
-    PHGroup_SetCurrentValue(sValue);
+    PHGroup_SetCurrentValue(value);
 }
