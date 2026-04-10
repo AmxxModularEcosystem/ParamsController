@@ -35,7 +35,7 @@ stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 stock const DEFAULT_PARAMS_REGEXP_NAME[] = "Regexp";
 
-#define PARAMS_CONTROLLER_VERSION "1.3.3"
+#define PARAMS_CONTROLLER_VERSION "1.4.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
@@ -228,6 +228,85 @@ native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj
  */
 native bool:ParamsController_Param_Read(const T_Param:param, const JSON:valueJson, const Trie:dest, const orFailKey[] = "");
 
+// Маркеры формата PC-аргументов натива.
+// Первая ячейка всегда '$', вторая определяет тип содержимого.
+#define PCARG_MARKER    '$'
+#define PCARG_TYPE_PARAM 'P'  // одиночный T_Param хендл
+#define PCARG_TYPE_ARRAY 'A'  // Array: хендл со списком T_Param
+
+/**
+ * Конструктор параметра для передачи через аргументы натива.
+ * Компактная альтернатива тройке ("ключ", "тип", required).
+ *
+ * @note    Возвращаемое значение передаётся как ОДИН аргумент натива вместо трёх.
+ *          Совместимо с ParamsController_Param_ListFromNativeParams — оба стиля можно
+ *          смешивать в одном вызове.
+ *
+ * @param   key       Ключ параметра
+ * @param   typeName  Название типа параметра
+ * @param   required  Является ли параметр обязательным
+ *
+ * @return  Закодированный хендлер параметра (строка-маркер для передачи в натив)
+ */
+stock PCParam(const key[], const typeName[], const bool:required = false) {
+    // Формат: [PCARG_MARKER, PCARG_TYPE_PARAM, handle + 1, EOS]
+    // +1 чтобы handle=0 не читался как EOS при get_string на стороне сервера.
+    new buf[4];
+    buf[0] = PCARG_MARKER;
+    buf[1] = PCARG_TYPE_PARAM;
+    buf[2] = _:ParamsController_Param_Construct(key, typeName, required) + 1;
+    buf[3] = EOS;
+    return buf;
+}
+
+/**
+ * Упаковка набора PCParam()-значений в один аргумент натива.
+ *
+ * @note    Возвращаемое значение передаётся как ОДИН аргумент натива.
+ *          Совместимо с ParamsController_Param_ListFromNativeParams.
+ *          Временный массив уничтожается внутри ListFromNativeParams.
+ *
+ * @param   ...     Результаты вызовов PCParam()
+ *
+ * @return  Закодированный хендлер массива параметров (строка-маркер для передачи в натив)
+ */
+stock PCParams(any:...) {
+    new Array:arr = ArrayCreate(1, 1);
+
+    for (new i = 0, count = numargs(); i < count; i++) {
+        if (getarg(i, 0) == PCARG_MARKER && getarg(i, 1) == PCARG_TYPE_PARAM) {
+            ArrayPushCell(arr, T_Param:(getarg(i, 2) - 1));
+        }
+    }
+
+    // Формат: [PCARG_MARKER, PCARG_TYPE_ARRAY, array_handle + 1, EOS]
+    new buf[4];
+    buf[0] = PCARG_MARKER;
+    buf[1] = PCARG_TYPE_ARRAY;
+    buf[2] = _:arr + 1;
+    buf[3] = EOS;
+    return buf;
+}
+
+/**
+ * Создание Array: с хендлерами параметров из набора PCParam()-значений.
+ *
+ * @param   ...     Результаты вызовов PCParam()
+ *
+ * @return  Хендлер динамического массива с параметрами
+ */
+stock Array:PCParamsArray(any:...) {
+    new Array:result = ArrayCreate(1, 1);
+
+    for (new i = 0, count = numargs(); i < count; i++) {
+        if (getarg(i, 0) == PCARG_MARKER && getarg(i, 1) == PCARG_TYPE_PARAM) {
+            ArrayPushCell(result, T_Param:(getarg(i, 2) - 1));
+        }
+    }
+
+    return result;
+}
+
 /**
  * Создание параметра из параметров натива
  *
@@ -248,35 +327,55 @@ stock T_Param:ParamsController_Param_FromNativeParams(const iParamOffset) {
 
     new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN];
     get_string(iParamOffset + ParamArg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
-    
+
     new bool:bRequired = bool:get_param_byref(iParamOffset + ParamArg_bRequired);
 
     return ParamsController_Param_Construct(sKey, sParamTypeName, bRequired);
 }
 
 /**
- * Создание списка параметров из параметров натива
+ * Создание списка параметров из параметров натива.
  *
- * @note    Должно вызываться только в рамках обработки вызова натива
+ * @note    Должно вызываться только в рамках обработки вызова натива.
  *
- * @param   iParamOffset    Номер параметра, с которого начинать читать
- * @param   iParamsCount    Общее количество параметров, переданных в натив (передаётся в обработчик натива первым параметром)
- * @param   aAppend         Массив, в который нужно дописывать созданные параметры (по умолчанию создастся новый)
+ * @note    Поддерживает несколько стилей передачи параметров (можно смешивать):
+ *            - Классический: три аргумента натива на параметр ("ключ", "тип", required)
+ *            - PCParam():    один аргумент натива — одиночный параметр
+ *            - PCParams():   один аргумент натива — массив параметров
  *
- * @return  Хендлер динамического массива с прочитанными параметрами (если был передан параметр aAppend, то вернётся его значение)
+ * @param   iParamOffset    Номер аргумента натива, с которого начинать читать
+ * @param   iParamsCount    Общее количество аргументов натива (первый параметр обработчика)
+ * @param   aAppend         Массив, в который дописывать параметры (по умолчанию создаётся новый)
+ *
+ * @return  Хендлер динамического массива с прочитанными параметрами
  */
 stock Array:ParamsController_Param_ListFromNativeParams(const iParamOffset, const iParamsCount, &Array:aAppend = Invalid_Array) {
     if (aAppend == Invalid_Array) {
         aAppend = ArrayCreate(1, 1);
     }
 
-    new iCount = (iParamsCount - iParamOffset + 1) / E_NativeParam;
-    if (iCount < 1) {
-        return aAppend;
-    }
-
-    for (new i = 0; i < iCount; ++i) {
-        ArrayPushCell(aAppend, ParamsController_Param_FromNativeParams(iParamOffset + (i * E_NativeParam)));
+    new i = iParamOffset;
+    new val[4];
+    while (i <= iParamsCount) {
+        get_string(i, val, charsmax(val));
+        if (val[0] == PCARG_MARKER) {
+            if (val[1] == PCARG_TYPE_PARAM) {
+                // PCParam(): одиночный параметр
+                ArrayPushCell(aAppend, T_Param:(val[2] - 1));
+            } else if (val[1] == PCARG_TYPE_ARRAY) {
+                // PCParams(): временный массив параметров
+                new Array:arr = Array:(val[2] - 1);
+                for (new j = 0, jj = ArraySize(arr); j < jj; j++) {
+                    ArrayPushCell(aAppend, ArrayGetCell(arr, j));
+                }
+                ArrayDestroy(arr);
+            }
+            i += 1;
+        } else {
+            // Классический стиль: тройка ("ключ", "тип", required)
+            ArrayPushCell(aAppend, ParamsController_Param_FromNativeParams(i));
+            i += E_NativeParam;
+        }
     }
 
     return aAppend;
