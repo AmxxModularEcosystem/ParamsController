@@ -545,6 +545,12 @@ stock PCSingle_ObjString(const JSON:objectJson, const key[], out[], const outLen
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_STR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_iObjString(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PARAM_VALUE_MAX_LEN];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_STR_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
 stock PCSingle_String(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_STR_NAME, out, outLen, def, orFailKey);
 }
@@ -570,6 +576,12 @@ stock PCSingle_iString(const JSON:valueJson, const def[] = "", const orFailKey[]
  */
 stock PCSingle_ObjShortString(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SHORT_STR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_iObjShortString(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PARAM_SHORT_STRING_MAX_LEN];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SHORT_STR_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
 }
 
 stock PCSingle_ShortString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -599,6 +611,12 @@ stock PCSingle_ObjLongString(const JSON:objectJson, const key[], out[], const ou
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_iObjLongString(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PARAM_LONG_STRING_MAX_LEN];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_LONG_STR_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
 stock PCSingle_LongString(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_LONG_STR_NAME, out, outLen, def, orFailKey);
 }
@@ -624,6 +642,12 @@ stock PCSingle_iLongString(const JSON:valueJson, const def[] = "", const orFailK
  */
 stock PCSingle_ObjModel(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_MODEL_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_iObjModel(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_MODEL_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
 }
 
 stock PCSingle_Model(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -653,6 +677,12 @@ stock PCSingle_ObjSound(const JSON:objectJson, const key[], out[], const outLen,
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_iObjSound(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_SOUND_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
 stock PCSingle_Sound(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_SOUND_NAME, out, outLen, def, orFailKey);
 }
@@ -678,6 +708,12 @@ stock PCSingle_iSound(const JSON:valueJson, const def[] = "", const orFailKey[] 
  */
 stock PCSingle_ObjResource(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_RESOURCE_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_iObjResource(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_RESOURCE_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
 }
 
 stock PCSingle_Resource(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -707,6 +743,12 @@ stock PCSingle_ObjFile(const JSON:objectJson, const key[], out[], const outLen, 
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_iObjFile(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_FILE_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
 stock PCSingle_File(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_FILE_NAME, out, outLen, def, orFailKey);
 }
@@ -732,6 +774,12 @@ stock PCSingle_iFile(const JSON:valueJson, const def[] = "", const orFailKey[] =
  */
 stock PCSingle_ObjDir(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_DIR_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_iObjDir(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_DIR_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
 }
 
 stock PCSingle_Dir(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
@@ -761,6 +809,12 @@ stock PCSingle_ObjChatMessage(const JSON:objectJson, const key[], out[], const o
     return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, dotNot, orFail);
 }
 
+stock PCSingle_iObjChatMessage(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PARAM_CHAT_MESSAGE_MAX_LEN];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
 stock PCSingle_ChatMessage(const JSON:valueJson, out[], const outLen, const def[] = "", const bool:orFail = false) {
     return PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, outLen, def, orFail);
 }
@@ -769,6 +823,25 @@ stock PCSingle_iChatMessage(const JSON:valueJson, const def[] = "", const bool:o
     new out[PARAM_CHAT_MESSAGE_MAX_LEN];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_CHAT_MESSAGE_NAME, out, charsmax(out), def, orFail);
     return out;
+}
+
+/**
+ * Чтение параметра типа "Regexp" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Хендлер скомпилированного выражения.
+ */
+stock Regex:PCSingle_ObjRegexp(const JSON:objectJson, const key[], const Regex:def = Regex:REGEX_PATTERN_FAIL, const bool:dotNot = false, const bool:orFail = false) {
+    return Regex:PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_REGEXP_NAME, def, dotNot, orFail);
+}
+
+stock Regex:PCSingle_Regexp(const JSON:valueJson, const Regex:def = Regex:REGEX_PATTERN_FAIL, const orFailKey[] = "") {
+    return Regex:PCSingle_Cell(valueJson, DEFAULT_PARAMS_REGEXP_NAME, def, orFailKey);
 }
 
 // Getters
@@ -793,6 +866,10 @@ stock PCGet_iStr(const Trie:p, const key[], const def[] = "") {
     new str[PARAM_VALUE_MAX_LEN];
     PCGet_Str(p, key, str, charsmax(str), def);
     return str;
+}
+
+stock Regex:PCGet_Regexp(const Trie:p, const key[], const Regex:def = Regex:REGEX_PATTERN_FAIL) {
+    return Regex:PCGet_Cell(p, key, def);
 }
 
 stock PCGet_iChatMessage(const Trie:p, const key[], const def[] = "") {
