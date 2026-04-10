@@ -5,6 +5,7 @@
 
 #include <amxmodx>
 #include <json>
+#include <regex>
 
 #define PARAM_TYPE_NAME_MAX_LEN 64
 #define PARAM_KEY_MAX_LEN 64
