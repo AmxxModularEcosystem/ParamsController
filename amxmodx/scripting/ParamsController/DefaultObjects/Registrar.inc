@@ -17,6 +17,7 @@
 #include "ParamsController/DefaultObjects/ParamType/TimeInterval"
 #include "ParamsController/DefaultObjects/ParamType/WeekDay"
 #include "ParamsController/DefaultObjects/ParamType/Flags"
+#include "ParamsController/DefaultObjects/ParamType/Regexp"
 
 DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_Boolean_Register();
@@ -36,4 +37,5 @@ DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_Time_Register();
     DefaultObjects_ParamType_TimeInterval_Register();
     DefaultObjects_ParamType_WeekDay_Register();
+    DefaultObjects_ParamType_Regexp_Register();
 }

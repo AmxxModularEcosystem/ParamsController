@@ -32,6 +32,7 @@ stock const DEFAULT_PARAMS_TIME_INTERVAL_NAME[] = "TimeInterval";
 stock const DEFAULT_PARAMS_TIME_NAME[] = "Time";
 stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
+stock const DEFAULT_PARAMS_REGEXP_NAME[] = "Regexp";
 
 #define PARAMS_CONTROLLER_VERSION "1.3.3"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
