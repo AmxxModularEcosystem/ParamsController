@@ -972,11 +972,11 @@ stock PCPath_iMakePath(const path[], const absolutePrefix[] = "", const forceFil
 stock bool:PCPath_GetFileName(const path[], out[], const outLen) {
     new i = strlen(path) - 1;
 
-    if (PCPath_IsPathSeparator(path[i])) {
+    if (i < 0 || PCPath_IsPathSeparator(path[i])) {
         return false;
     }
 
-    while (!PCPath_IsPathSeparator(path[i - 1])) {
+    while (i > 0 && !PCPath_IsPathSeparator(path[i - 1])) {
         --i;
     }
 
@@ -1103,10 +1103,12 @@ stock bool:PCJson_IsRoot(const JSON:value) {
     if (value == Invalid_JSON) {
         return false;
     }
-    
+
     new JSON:parent = json_get_parent(value);
     new bool:ret = parent == Invalid_JSON;
-    json_free(parent);
+    if (parent != Invalid_JSON) {
+        json_free(parent);
+    }
     return ret;
 }
 
@@ -1114,10 +1116,12 @@ stock bool:PCJson_IsWrappedRoot(const JSON:value) {
     if (value == Invalid_JSON) {
         return false;
     }
-    
+
     new JSON:parent = json_get_parent(value);
     new bool:ret = PCJson_IsWrapper(parent);
-    json_free(parent);
+    if (parent != Invalid_JSON) {
+        json_free(parent);
+    }
     return ret;
 }
 
@@ -1253,6 +1257,8 @@ stock bool:PCJson_HandleLinkedValue(const JSON:value, &JSON:linkedOrSameValue) {
     } else {
         PCJson_GetWrapperWorkdir(wrapper, workdir, charsmax(workdir));
     }
+
+    json_free(wrapper);
 
     static path[PLATFORM_MAX_PATH];
     PCPath_MakePath(
