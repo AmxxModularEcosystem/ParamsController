@@ -873,6 +873,15 @@ stock Regex:PCGet_Regexp(const Trie:p, const key[], const Regex:def = Regex:REGE
     return Regex:PCGet_Cell(p, key, def);
 }
 
+stock bool:PCGet_RegexpMatch(const Trie:p, const key[], const string[]) {
+    new Regex:re = PCGet_Regexp(p, key);
+    if (re == Regex:REGEX_PATTERN_FAIL) {
+        return false;
+    }
+
+    return regex_match_c(string, re) > 0;
+}
+
 stock PCGet_iChatMessage(const Trie:p, const key[], const def[] = "") {
     new str[PARAM_CHAT_MESSAGE_MAX_LEN];
     PCGet_Str(p, key, str, charsmax(str), def);
