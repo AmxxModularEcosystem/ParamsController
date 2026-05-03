@@ -19,7 +19,10 @@
 #include "ParamsController/DefaultObjects/ParamType/Flags"
 #include "ParamsController/DefaultObjects/ParamType/Regexp"
 
-DefaultObjects_ParamType_Register() {
+#include "ParamsController/DefaultObjects/Placeholder/Global"
+#include "ParamsController/DefaultObjects/Placeholder/Player"
+
+DefaultObjects_Register() {
     DefaultObjects_ParamType_Boolean_Register();
     DefaultObjects_ParamType_Integer_Register();
     DefaultObjects_ParamType_Float_Register();
@@ -38,4 +41,11 @@ DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_TimeInterval_Register();
     DefaultObjects_ParamType_WeekDay_Register();
     DefaultObjects_ParamType_Regexp_Register();
+
+    DefaultObjects_PH_Global_Register();
+    DefaultObjects_PH_Player_Register();
+}
+
+DefaultObjects_OnClientAuth(const playerIndex, const sAuthID[]) {
+    DefaultObjects_PH_Player_OnClientAuth(playerIndex, sAuthID);
 }
