@@ -1548,6 +1548,51 @@ native PCPH_SetFloatForStr(const T_PHGroup:group, const key[], const contextKey[
 native PCPH_Format(out[], const outLen, const format[]);
 
 /**
+ * Тип хендлера скомпилированного шаблона плейсхолдеров.
+ * Создаётся через PCPH_CompileTemplate, уничтожается через PCPH_DestroyTemplate.
+ */
+enum T_PHTemplate { Invalid_PHTemplate = INVALID_HANDLE }
+
+/**
+ * Компилирует строку с плейсхолдерами в предварительно разобранный шаблон.
+ * Кеширует хендлеры групп и форвардов — при каждом вызове PCPH_FormatTemplate
+ * не выполняются сканирование строки, парсинг префикса/ключа и Trie-поиск группы/форварда.
+ *
+ * @note Компилировать следует после завершения регистрации всех групп, ключей и колбеков
+ *       (например, в конце PCPH_OnRegisterGroups или в ParamsController_OnInited).
+ *       Плейсхолдеры с неизвестными группами или ключами фиксируются как литеральный текст.
+ *       Текстовые сегменты длиннее PH_VALUE_MAX_LEN символов будут обрезаны.
+ *
+ * @param format Строка с плейсхолдерами
+ *
+ * @return Хендлер скомпилированного шаблона
+ */
+native T_PHTemplate:PCPH_CompileTemplate(const format[]);
+
+/**
+ * Форматирует скомпилированный шаблон, подставляя текущие значения плейсхолдеров.
+ * Быстрее PCPH_Format: нет сканирования строки, нет разбора плейсхолдеров,
+ * хендлеры группы и форварда берутся из кеша.
+ *
+ * @param tmpl Хендлер скомпилированного шаблона
+ * @param out Буфер для результирующей строки
+ * @param outLen Размер буфера
+ *
+ * @noreturn
+ */
+native PCPH_FormatTemplate(const T_PHTemplate:tmpl, out[], const outLen);
+
+/**
+ * Уничтожает скомпилированный шаблон и освобождает занятую память.
+ * Вызов с Invalid_PHTemplate — безопасная операция.
+ *
+ * @param tmpl Хендлер скомпилированного шаблона
+ *
+ * @noreturn
+ */
+native PCPH_DestroyTemplate(const T_PHTemplate:tmpl);
+
+/**
  * Помещение числового контекста на стек группы.
  * Удобная обёртка над PCPH_Group_PushContext для случаев, когда контекстный ключ — число (например, индекс игрока).
  *

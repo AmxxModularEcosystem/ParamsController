@@ -62,16 +62,19 @@ forward PCPH_OnRegisterGroups();
 ```pawn
 native T_PHGroup:PCPH_RegisterGroup(const sPrefix[]);
 ```
+
 Регистрирует новую группу с уникальным префиксом. Возвращает хендлер группы.
 
 ```pawn
 native T_PHGroup:PCPH_FindGroup(const sPrefix[]);
 ```
+
 Ищет группу по префиксу. Возвращает `Invalid_PHGroup` если не найдена.
 
 ```pawn
 native T_PHGroup:PCPH_GetGlobalGroup();
 ```
+
 Возвращает хендлер глобальной группы (плейсхолдеры без префикса).
 
 ---
@@ -81,14 +84,17 @@ native T_PHGroup:PCPH_GetGlobalGroup();
 ```pawn
 native PCPH_RegisterGroupKey(const T_PHGroup:hGroup, const sKey[]);
 ```
+
 Регистрирует ключ в группе без колбека (проактивный режим).
 
 ```pawn
 native PCPH_SetGroupKeyCallback(const T_PHGroup:hGroup, const sKey[], const sCallback[]);
 ```
+
 Устанавливает колбек для **уже зарегистрированного** ключа. Если ключ не зарегистрирован — ошибка.
 
 Сигнатура колбека:
+
 ```pawn
 public MyCallback(const sKey[], const sContextKey[]) {
     // sKey        — ключ плейсхолдера
@@ -179,6 +185,48 @@ native PCPH_Format(out[], const iOutLen, const sFormat[]);
 ```
 
 Заменяет все плейсхолдеры вида `{key}` и `{prefix:key}` в строке `sFormat`. Незарегистрированные ключи и неизвестные группы сохраняются как есть. Максимальная длина результата — `PH_FORMAT_MAX_LEN` (4096).
+
+---
+
+### Скомпилированные шаблоны
+
+Для строк, которые форматируются часто (HUD-сообщения, периодические уведомления), можно предварительно скомпилировать шаблон. Компиляция разбирает строку один раз и кеширует для каждого плейсхолдера хендлер группы и хендлер форварда. При каждом последующем `PCPH_FormatTemplate` сканирование строки и поиск в Trie (группа, форвард) не выполняются.
+
+**Что кешируется:** хендлер группы и хендлер форварда.  
+**Что НЕ кешируется:** текущий контекст и значение — они читаются при каждом форматировании.  
+**Ограничение:** текстовые сегменты длиннее `PH_VALUE_MAX_LEN` (512) символов обрезаются.
+
+```pawn
+// Создание — один раз после регистрации всех групп и ключей
+native T_PHTemplate:PCPH_CompileTemplate(const sFormat[]);
+
+// Форматирование — при каждом обновлении HUD и т.п.
+native PCPH_FormatTemplate(const T_PHTemplate:hTmpl, out[], const iOutLen);
+
+// Уничтожение — при выгрузке плагина или когда шаблон больше не нужен
+// Вызов с Invalid_PHTemplate безопасен
+native PCPH_DestroyTemplate(const T_PHTemplate:hTmpl);
+```
+
+**Когда компилировать:** после завершения регистрации всех групп, ключей и колбеков — например, в `ParamsController_OnInited`. Плейсхолдеры с неизвестными на момент компиляции группами или ключами фиксируются как литеральный текст и не будут заменены даже если группа зарегистрируется позже.
+
+**Когда НЕ использовать:**
+
+- строка динамическая (меняется между вызовами) — для таких строк только `PCPH_Format`;
+- форматирование редкое (раз в несколько секунд и реже) — выигрыш незначителен, PCPH_Format достаточно.
+
+### Форматирование с контекстом через скомпилированный шаблон
+
+```pawn
+new T_PHGroup:hPlayerGroup = PCPH_FindGroup(DEFAULT_PH_PLAYER_GROUP_PREFIX);
+new T_PHTemplate:hTmpl = PCPH_CompileTemplate("HP: {p:health} | Score: {p:score}");
+
+FormatForPlayer(id, out[], outLen) {
+    PCPH_PushIntContext(hPlayerGroup, id);
+    PCPH_FormatTemplate(hTmpl, out, outLen);
+    PCPH_PopContext(hPlayerGroup);
+}
+```
 
 ---
 

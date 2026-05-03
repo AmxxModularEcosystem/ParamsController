@@ -8,10 +8,10 @@
 
 enum _:S_PHGroup {
     PHGroup_Prefix[PH_GROUP_PREFIX_MAX_LEN],
-    Trie:PHGroup_Callbacks,                             // ключ → хендлер форварда (INVALID_HANDLE если колбека нет)
-    Trie:PHGroup_Values,                                // "ключ:контекст" → текущее значение (строка)
-    Stack:PHGroup_ContextStack,                         // стек сохранённых предыдущих контекстов
-    PHGroup_CurrentContext[PH_CONTEXT_KEY_MAX_LEN],     // текущий активный контекст (вершина стека)
+    Trie:PHGroup_Callbacks,                         // ключ → хендлер форварда (INVALID_HANDLE если колбека нет)
+    Trie:PHGroup_Values,                            // "ключ:контекст" → текущее значение (строка)
+    Stack:PHGroup_ContextStack,                     // стек сохранённых предыдущих контекстов
+    PHGroup_CurrentContext[PH_CONTEXT_KEY_MAX_LEN], // текущий активный контекст (вершина стека)
 }
 
 static Array:PHGroups = Invalid_Array;
@@ -281,6 +281,15 @@ PHGroup_FormatString(const src[], out[], const outLen) {
     }
 
     out[outPos] = 0;
+}
+
+static PHGroup_GetKeyForward(const T_PHGroup:group, const key[]) {
+    new groupData[S_PHGroup];
+    PHGroup_Get(group, groupData);
+
+    new fwd = INVALID_HANDLE;
+    TrieGetCell(groupData[PHGroup_Callbacks], key, fwd);
+    return fwd;
 }
 
 bool:PHGroup_IsInCallback() {
