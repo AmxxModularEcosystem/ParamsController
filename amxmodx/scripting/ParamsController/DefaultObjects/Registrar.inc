@@ -18,6 +18,7 @@
 #include "ParamsController/DefaultObjects/ParamType/WeekDay"
 #include "ParamsController/DefaultObjects/ParamType/Flags"
 #include "ParamsController/DefaultObjects/ParamType/Regexp"
+#include "ParamsController/DefaultObjects/ParamType/PHTemplate"
 
 #include "ParamsController/DefaultObjects/Placeholder/Global"
 #include "ParamsController/DefaultObjects/Placeholder/Player"
@@ -41,6 +42,7 @@ DefaultObjects_Register() {
     DefaultObjects_ParamType_TimeInterval_Register();
     DefaultObjects_ParamType_WeekDay_Register();
     DefaultObjects_ParamType_Regexp_Register();
+    DefaultObjects_ParamType_PHTemplate_Register();
 
     DefaultObjects_PH_Global_Register();
     DefaultObjects_PH_Player_Register();

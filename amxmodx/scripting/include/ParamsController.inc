@@ -34,6 +34,7 @@ stock const DEFAULT_PARAMS_TIME_NAME[] = "Time";
 stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 stock const DEFAULT_PARAMS_REGEXP_NAME[] = "Regexp";
+stock const DEFAULT_PARAMS_PH_TEMPLATE_NAME[] = "PH-Template";
 
 #define PARAMS_CONTROLLER_VERSION "1.4.0"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
@@ -942,6 +943,25 @@ stock Regex:PCSingle_ObjRegexp(const JSON:objectJson, const key[], const Regex:d
 
 stock Regex:PCSingle_Regexp(const JSON:valueJson, const Regex:def = Regex:REGEX_PATTERN_FAIL, const orFailKey[] = "") {
     return Regex:PCSingle_Cell(valueJson, DEFAULT_PARAMS_REGEXP_NAME, def, orFailKey);
+}
+
+/**
+ * Чтение параметра типа "PH-Template" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Хендлер скомпилированного шаблона.
+ */
+stock T_PHTemplate:PCSingle_ObjPHTemplate(const JSON:objectJson, const key[], const T_PHTemplate:def = Invalid_PHTemplate, const bool:dotNot = false, const bool:orFail = false) {
+    return T_PHTemplate:PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_PH_TEMPLATE_NAME, def, dotNot, orFail);
+}
+
+stock T_PHTemplate:PCSingle_PHTemplate(const JSON:valueJson, const T_PHTemplate:def = Invalid_PHTemplate, const orFailKey[] = "") {
+    return T_PHTemplate:PCSingle_Cell(valueJson, DEFAULT_PARAMS_PH_TEMPLATE_NAME, def, orFailKey);
 }
 
 // Getters
