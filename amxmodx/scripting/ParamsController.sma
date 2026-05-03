@@ -37,6 +37,9 @@ PluginInit() {
     // Тут регать группы и ключи плейсхолдеров
     Forwards_RegAndCall("PCPH_OnRegisterGroups", ET_IGNORE);
 
+    // Тут регать прокси-группы (все обычные группы уже зарегистрированы)
+    Forwards_RegAndCall("PCPH_OnRegisterProxyGroups", ET_IGNORE);
+
     register_srvcmd("params_controller_types", "@SrvCmd_Types");
 
     // После этого можно юзать типы и плейсхолдеры

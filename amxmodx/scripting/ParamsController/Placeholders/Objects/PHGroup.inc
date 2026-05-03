@@ -12,6 +12,7 @@ enum _:S_PHGroup {
     Trie:PHGroup_Values,                            // "ключ:контекст" → текущее значение (строка)
     Stack:PHGroup_ContextStack,                     // стек сохранённых предыдущих контекстов
     PHGroup_CurrentContext[PH_CONTEXT_KEY_MAX_LEN], // текущий активный контекст (вершина стека)
+    T_PHGroup:PHGroup_Source,                       // источник данных (Invalid_PHGroup для обычных групп)
 }
 
 static Array:PHGroups = Invalid_Array;
@@ -42,6 +43,7 @@ T_PHGroup:PHGroup_Construct(const prefix[]) {
     groupData[PHGroup_Values] = TrieCreate();
     groupData[PHGroup_ContextStack] = Invalid_Stack;
     groupData[PHGroup_CurrentContext][0] = EOS;
+    groupData[PHGroup_Source] = Invalid_PHGroup;
 
     new T_PHGroup:group = T_PHGroup:ArrayPushArray(PHGroups, groupData);
 
@@ -51,6 +53,38 @@ T_PHGroup:PHGroup_Construct(const prefix[]) {
     } else {
         log_amx("[INFO] PH global group registered");
     }
+
+    return group;
+}
+
+static T_PHGroup:PHGroup_DataGroup(const T_PHGroup:group) {
+    new groupData[S_PHGroup];
+    PHGroup_Get(group, groupData);
+    if (groupData[PHGroup_Source] != Invalid_PHGroup) {
+        return groupData[PHGroup_Source];
+    }
+    return group;
+}
+
+T_PHGroup:PHGroup_ConstructProxy(const prefix[], const T_PHGroup:sourceGroup) {
+    new srcData[S_PHGroup];
+    PHGroup_Get(sourceGroup, srcData);
+
+    new groupData[S_PHGroup];
+    copy(groupData[PHGroup_Prefix], charsmax(groupData[PHGroup_Prefix]), prefix);
+    groupData[PHGroup_Callbacks] = Invalid_Trie;
+    groupData[PHGroup_Values] = Invalid_Trie;
+    groupData[PHGroup_ContextStack] = Invalid_Stack;
+    groupData[PHGroup_CurrentContext][0] = EOS;
+    groupData[PHGroup_Source] = sourceGroup;
+
+    new T_PHGroup:group = T_PHGroup:ArrayPushArray(PHGroups, groupData);
+    TrieSetCell(PHGroupsMap, prefix, group);
+
+    log_amx("[INFO] PH proxy group registered: prefix='%s' -> source='%s'",
+        prefix,
+        srcData[PHGroup_Prefix][0] != EOS ? srcData[PHGroup_Prefix] : "(global)"
+    );
 
     return group;
 }
@@ -86,6 +120,11 @@ PHGroup_RegisterKey(const T_PHGroup:group, const key[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(group, groupData);
 
+    if (groupData[PHGroup_Source] != Invalid_PHGroup) {
+        abort(AMX_ERR_PARAMS, "Cannot register key on a proxy PH group.");
+        return;
+    }
+
     if (!TrieKeyExists(groupData[PHGroup_Callbacks], key)) {
         TrieSetCell(groupData[PHGroup_Callbacks], key, INVALID_HANDLE);
     }
@@ -94,6 +133,11 @@ PHGroup_RegisterKey(const T_PHGroup:group, const key[]) {
 PHGroup_SetKeyCallback(const T_PHGroup:group, const key[], const callback[], const pluginIndex) {
     new groupData[S_PHGroup];
     PHGroup_Get(group, groupData);
+
+    if (groupData[PHGroup_Source] != Invalid_PHGroup) {
+        abort(AMX_ERR_PARAMS, "Cannot set key callback on a proxy PH group.");
+        return;
+    }
 
     if (!TrieKeyExists(groupData[PHGroup_Callbacks], key)) {
         abort(AMX_ERR_PARAMS, "PH key '%s' is not registered. Call RegisterGroupKey first.", key);
@@ -146,8 +190,9 @@ PHGroup_PopContext(const T_PHGroup:group) {
 }
 
 PHGroup_SetValue(const T_PHGroup:group, const key[], const contextKey[], const value[]) {
+    new T_PHGroup:dataGroup = PHGroup_DataGroup(group);
     new groupData[S_PHGroup];
-    PHGroup_Get(group, groupData);
+    PHGroup_Get(dataGroup, groupData);
 
     static valueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
     PHGroup_BuildValueKey(key, contextKey, valueKey, charsmax(valueKey));
@@ -156,8 +201,9 @@ PHGroup_SetValue(const T_PHGroup:group, const key[], const contextKey[], const v
 }
 
 static bool:PHGroup_GetValue(const T_PHGroup:group, const key[], const contextKey[], out[], const outLen) {
+    new T_PHGroup:dataGroup = PHGroup_DataGroup(group);
     new groupData[S_PHGroup];
-    PHGroup_Get(group, groupData);
+    PHGroup_Get(dataGroup, groupData);
 
     static valueKey[PH_KEY_MAX_LEN + PH_CONTEXT_KEY_MAX_LEN + 2];
     PHGroup_BuildValueKey(key, contextKey, valueKey, charsmax(valueKey));
@@ -166,14 +212,16 @@ static bool:PHGroup_GetValue(const T_PHGroup:group, const key[], const contextKe
 }
 
 bool:PHGroup_IsKeyRegistered(const T_PHGroup:group, const key[]) {
+    new T_PHGroup:dataGroup = PHGroup_DataGroup(group);
     new groupData[S_PHGroup];
-    PHGroup_Get(group, groupData);
+    PHGroup_Get(dataGroup, groupData);
     return bool:TrieKeyExists(groupData[PHGroup_Callbacks], key);
 }
 
 static PHGroup_CallCallback(const T_PHGroup:group, const key[], const contextKey[]) {
+    new T_PHGroup:dataGroup = PHGroup_DataGroup(group);
     new groupData[S_PHGroup];
-    PHGroup_Get(group, groupData);
+    PHGroup_Get(dataGroup, groupData);
 
     new fwd;
     if (!TrieGetCell(groupData[PHGroup_Callbacks], key, fwd) || fwd == INVALID_HANDLE) {
@@ -287,8 +335,9 @@ PHGroup_FormatString(const src[], out[], const outLen) {
 }
 
 PHGroup_GetKeyForward(const T_PHGroup:group, const key[]) {
+    new T_PHGroup:dataGroup = PHGroup_DataGroup(group);
     new groupData[S_PHGroup];
-    PHGroup_Get(group, groupData);
+    PHGroup_Get(dataGroup, groupData);
 
     new fwd = INVALID_HANDLE;
     TrieGetCell(groupData[PHGroup_Callbacks], key, fwd);

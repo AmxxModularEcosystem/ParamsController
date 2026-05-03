@@ -4,6 +4,7 @@
 
 API_PH_Group_Register() {
     register_native("PCPH_RegisterGroup", "@API_PH_RegisterGroup");
+    register_native("PCPH_RegisterProxyGroup", "@API_PH_RegisterProxyGroup");
     register_native("PCPH_FindGroup", "@API_PH_FindGroup");
     register_native("PCPH_GetGlobalGroup", "@API_PH_GetGlobalGroup");
     register_native("PCPH_Group_PushContext", "@API_PH_PushContext");
@@ -29,6 +30,33 @@ T_PHGroup:@API_PH_RegisterGroup() {
     }
 
     return PHGroup_Construct(prefix);
+}
+
+T_PHGroup:@API_PH_RegisterProxyGroup() {
+    enum {Arg_Prefix = 1, Arg_SourceGroup}
+
+    API_CheckPluginInited();
+
+    static prefix[PH_GROUP_PREFIX_MAX_LEN];
+    get_string(Arg_Prefix, prefix, charsmax(prefix));
+
+    if (prefix[0] == EOS) {
+        abort(AMX_ERR_PARAMS, "PH proxy group prefix must not be empty.");
+        return Invalid_PHGroup;
+    }
+
+    if (PHGroup_Find(prefix) != Invalid_PHGroup) {
+        abort(AMX_ERR_PARAMS, "PH group with prefix '%s' is already registered.", prefix);
+        return Invalid_PHGroup;
+    }
+
+    new T_PHGroup:sourceGroup = T_PHGroup:get_param(Arg_SourceGroup);
+    if (sourceGroup == Invalid_PHGroup) {
+        abort(AMX_ERR_PARAMS, "Invalid source group handle for proxy PH group.");
+        return Invalid_PHGroup;
+    }
+
+    return PHGroup_ConstructProxy(prefix, sourceGroup);
 }
 
 T_PHGroup:@API_PH_FindGroup() {
