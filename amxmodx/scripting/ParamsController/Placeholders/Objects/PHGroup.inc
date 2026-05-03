@@ -162,7 +162,7 @@ static bool:PHGroup_GetValue(const T_PHGroup:group, const key[], const contextKe
     return bool:TrieGetString(groupData[PHGroup_Values], valueKey, out, outLen);
 }
 
-static bool:PHGroup_IsKeyRegistered(const T_PHGroup:group, const key[]) {
+bool:PHGroup_IsKeyRegistered(const T_PHGroup:group, const key[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(group, groupData);
     return bool:TrieKeyExists(groupData[PHGroup_Callbacks], key);
@@ -283,13 +283,37 @@ PHGroup_FormatString(const src[], out[], const outLen) {
     out[outPos] = 0;
 }
 
-static PHGroup_GetKeyForward(const T_PHGroup:group, const key[]) {
+PHGroup_GetKeyForward(const T_PHGroup:group, const key[]) {
     new groupData[S_PHGroup];
     PHGroup_Get(group, groupData);
 
     new fwd = INVALID_HANDLE;
     TrieGetCell(groupData[PHGroup_Callbacks], key, fwd);
     return fwd;
+}
+
+// Вызывает колбек (если fwd != INVALID_HANDLE) и записывает текущее значение ключа в out.
+// Используется скомпилированными шаблонами: группа и форвард уже известны, контекст берётся в рантайме.
+bool:PHGroup_FillValue(const T_PHGroup:group, const key[], const fwd, out[], const outLen) {
+    static currentContext[PH_CONTEXT_KEY_MAX_LEN];
+    new groupData[S_PHGroup];
+    PHGroup_Get(group, groupData);
+    copy(currentContext, charsmax(currentContext), groupData[PHGroup_CurrentContext]);
+
+    if (fwd != INVALID_HANDLE) {
+        CurrentPHGroup = group;
+        copy(CurrentPHKey, charsmax(CurrentPHKey), key);
+        copy(CurrentPHContext, charsmax(CurrentPHContext), currentContext);
+
+        new ret;
+        ExecuteForward(fwd, ret, key, currentContext);
+
+        CurrentPHGroup = Invalid_PHGroup;
+        CurrentPHKey[0] = EOS;
+        CurrentPHContext[0] = EOS;
+    }
+
+    return PHGroup_GetValue(group, key, currentContext, out, outLen);
 }
 
 bool:PHGroup_IsInCallback() {

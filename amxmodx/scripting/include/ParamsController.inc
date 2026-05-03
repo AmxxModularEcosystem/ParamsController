@@ -1458,6 +1458,43 @@ native PCPH_Cb_SetInt(const any:value);
 native PCPH_Cb_SetFloat(const Float:value);
 
 /**
+ * Проактивная установка строкового значения с явным строковым контекстным ключом (вне колбека).
+ *
+ * @param group Хендлер группы
+ * @param key Ключ плейсхолдера
+ * @param contextKey Контекстный ключ
+ * @param value Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native PCPH_SetForStr(const T_PHGroup:group, const key[], const contextKey[], const value[]);
+
+/**
+ * Проактивная установка числового (int) значения с явным строковым контекстным ключом (вне колбека).
+ *
+ * @param group Хендлер группы
+ * @param key Ключ плейсхолдера
+ * @param contextKey Контекстный ключ
+ * @param value Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native PCPH_SetIntForStr(const T_PHGroup:group, const key[], const contextKey[], const any:value);
+
+/**
+ * Проактивная установка числового (float) значения с явным строковым контекстным ключом (вне колбека).
+ * Форматируется с точностью до 2 знаков после запятой.
+ *
+ * @param group Хендлер группы
+ * @param key Ключ плейсхолдера
+ * @param contextKey Контекстный ключ
+ * @param value Устанавливаемое значение
+ *
+ * @noreturn
+ */
+native PCPH_SetFloatForStr(const T_PHGroup:group, const key[], const contextKey[], const Float:value);
+
+/**
  * Проактивная установка строкового значения для пустого контекста (вне колбека).
  *
  * @param group Хендлер группы
@@ -1496,43 +1533,6 @@ stock PCPH_SetInt(const T_PHGroup:group, const key[], const any:value) {
 stock PCPH_SetFloat(const T_PHGroup:group, const key[], const Float:value) {
     PCPH_SetFloatForStr(group, key, "", value);
 }
-
-/**
- * Проактивная установка строкового значения с явным строковым контекстным ключом (вне колбека).
- *
- * @param group Хендлер группы
- * @param key Ключ плейсхолдера
- * @param contextKey Контекстный ключ
- * @param value Устанавливаемое значение
- *
- * @noreturn
- */
-native PCPH_SetForStr(const T_PHGroup:group, const key[], const contextKey[], const value[]);
-
-/**
- * Проактивная установка числового (int) значения с явным строковым контекстным ключом (вне колбека).
- *
- * @param group Хендлер группы
- * @param key Ключ плейсхолдера
- * @param contextKey Контекстный ключ
- * @param value Устанавливаемое значение
- *
- * @noreturn
- */
-native PCPH_SetIntForStr(const T_PHGroup:group, const key[], const contextKey[], const any:value);
-
-/**
- * Проактивная установка числового (float) значения с явным строковым контекстным ключом (вне колбека).
- * Форматируется с точностью до 2 знаков после запятой.
- *
- * @param group Хендлер группы
- * @param key Ключ плейсхолдера
- * @param contextKey Контекстный ключ
- * @param value Устанавливаемое значение
- *
- * @noreturn
- */
-native PCPH_SetFloatForStr(const T_PHGroup:group, const key[], const contextKey[], const Float:value);
 
 /**
  * Замена плейсхолдеров в строке format, результат записывается в out.

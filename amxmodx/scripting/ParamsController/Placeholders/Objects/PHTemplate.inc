@@ -5,6 +5,7 @@
 
 #include <amxmodx>
 #include <ParamsController>
+#include "ParamsController/Placeholders/Objects/PHGroup"
 
 enum E_PHTemplatePartType {
     PHTemplatePartType_Text,
@@ -12,10 +13,10 @@ enum E_PHTemplatePartType {
 }
 
 enum _:S_PHTemplatePart {
-    E_PHTemplatePartType:PHTemplatePart_Type, // тип части шаблона
-    PHTemplatePart_Content[PH_VALUE_MAX_LEN], // текст сегмента или ключ плейсхолдера
-    T_PHGroup:PHTemplatePart_Group,           // хендлер группы (только для Placeholder)
-    PHTemplatePart_Forward,                   // хендлер форварда (INVALID_HANDLE если проактивный)
+    E_PHTemplatePartType:PHTemplatePart_Type,           // тип части шаблона
+    PHTemplatePart_Content[PH_VALUE_MAX_LEN],           // текст сегмента или ключ плейсхолдера
+    T_PHGroup:PHTemplatePart_Group,                     // хендлер группы (только для Placeholder)
+    PHTemplatePart_Forward,                             // хендлер форварда (INVALID_HANDLE если проактивный)
 }
 
 static PHTemplate_AddTextPart(Array:parts, const text[], const textLen) {
@@ -146,11 +147,8 @@ PHTemplate_Format(const T_PHTemplate:tmpl, out[], const outLen) {
 
     new outPos = 0;
     new partCount = ArraySize(Array:tmpl);
-    new ret;
     static partData[S_PHTemplatePart];
-    static currentContext[PH_CONTEXT_KEY_MAX_LEN];
     static value[PH_VALUE_MAX_LEN];
-    new groupData[S_PHGroup];
 
     for (new i = 0; i < partCount && outPos < outLen - 1; ++i) {
         ArrayGetArray(Array:tmpl, i, partData);
@@ -160,24 +158,7 @@ PHTemplate_Format(const T_PHTemplate:tmpl, out[], const outLen) {
                 out[outPos++] = partData[PHTemplatePart_Content][k];
             }
         } else {
-            new T_PHGroup:group = T_PHGroup:partData[PHTemplatePart_Group];
-            PHGroup_Get(group, groupData);
-            copy(currentContext, charsmax(currentContext), groupData[PHGroup_CurrentContext]);
-
-            new fwd = partData[PHTemplatePart_Forward];
-            if (fwd != INVALID_HANDLE) {
-                CurrentPHGroup = group;
-                copy(CurrentPHKey, charsmax(CurrentPHKey), partData[PHTemplatePart_Content]);
-                copy(CurrentPHContext, charsmax(CurrentPHContext), currentContext);
-
-                ExecuteForward(fwd, ret, partData[PHTemplatePart_Content], currentContext);
-
-                CurrentPHGroup = Invalid_PHGroup;
-                CurrentPHKey[0] = EOS;
-                CurrentPHContext[0] = EOS;
-            }
-
-            if (PHGroup_GetValue(group, partData[PHTemplatePart_Content], currentContext, value, charsmax(value))) {
+            if (PHGroup_FillValue(partData[PHTemplatePart_Group], partData[PHTemplatePart_Content], partData[PHTemplatePart_Forward], value, charsmax(value))) {
                 for (new k = 0; value[k] != EOS && outPos < outLen - 1; ++k) {
                     out[outPos++] = value[k];
                 }
@@ -190,6 +171,7 @@ PHTemplate_Format(const T_PHTemplate:tmpl, out[], const outLen) {
 
 PHTemplate_Destroy(const T_PHTemplate:tmpl) {
     if (tmpl != Invalid_PHTemplate) {
-        ArrayDestroy(Array:tmpl);
+        new Array:arr = Array:tmpl;
+        ArrayDestroy(arr);
     }
 }
