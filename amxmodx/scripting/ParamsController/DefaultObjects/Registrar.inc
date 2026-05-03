@@ -46,6 +46,14 @@ DefaultObjects_Register() {
     DefaultObjects_PH_Player_Register();
 }
 
-DefaultObjects_OnClientAuth(const playerIndex, const sAuthID[]) {
-    DefaultObjects_PH_Player_OnClientAuth(playerIndex, sAuthID);
+DefaultObjects_OnClientAuth(const playerIndex, const authId[]) {
+    DefaultObjects_PH_Player_OnClientAuth(playerIndex, authId);
+}
+
+DefaultObjects_OnClientPutInServer(const playerIndex) {
+    DefaultObjects_PH_Global_OnClientPutInServer(playerIndex);
+}
+
+DefaultObjects_OnClientDisconnected(const playerIndex) {
+    DefaultObjects_PH_Global_OnClientDisconnected(playerIndex);
 }

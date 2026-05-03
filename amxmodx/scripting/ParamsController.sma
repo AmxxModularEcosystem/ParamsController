@@ -43,12 +43,28 @@ PluginInit() {
     Forwards_RegAndCall("ParamsController_OnInited", ET_IGNORE);
 }
 
-public client_authorized(id, const sAuthID[]) {
+public client_authorized(playerIndex, const authId[]) {
     if (!IsPluginInited()) {
         return;
     }
 
-    DefaultObjects_OnClientAuth(id, sAuthID);
+    DefaultObjects_OnClientAuth(playerIndex, authId);
+}
+
+public client_putinserver(playerIndex) {
+    if (!IsPluginInited()) {
+        return;
+    }
+    
+    DefaultObjects_OnClientPutInServer(playerIndex);
+}
+
+public client_disconnected(playerIndex) {
+    if (!IsPluginInited()) {
+        return;
+    }
+    
+    DefaultObjects_OnClientDisconnected(playerIndex);
 }
 
 @SrvCmd_Types() {

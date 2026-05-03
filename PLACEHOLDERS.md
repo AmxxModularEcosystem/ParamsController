@@ -245,7 +245,7 @@ FormatForPlayer(id, out[], outLen) {
 
 | Плейсхолдер | Константы | Описание |
 |---|---|---|
-| `{map}` | `DEFAULT_PH_GLOBAL_MAP_KEY` | Текущая карта (проактивный, устанавливается при инициализации) |
+| `{real-map}` | `DEFAULT_PH_GLOBAL_REAL_MAP_KEY` | Текущая карта (проактивный, устанавливается при инициализации) |
 | `{p:authid}` | `DEFAULT_PH_PLAYER_GROUP_PREFIX`, `DEFAULT_PH_PLAYER_AUTHID_KEY` | AuthID игрока (проактивный, устанавливается при авторизации) |
 
 ---

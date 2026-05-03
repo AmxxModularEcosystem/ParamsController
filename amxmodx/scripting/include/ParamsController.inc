@@ -1525,11 +1525,18 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
 
 // --- Default placeholders ---
 
+stock const DEFAULT_PH_GLOBAL_REAL_MAP_KEY[] = "real-map";
 stock const DEFAULT_PH_GLOBAL_MAP_KEY[] = "map";
+stock const DEFAULT_PH_GLOBAL_SERVER_NAME_KEY[] = "server-name";
+stock const DEFAULT_PH_GLOBAL_SERVER_IP_KEY[] = "server-ip";
+stock const DEFAULT_PH_GLOBAL_DATE_KEY[] = "date";
+stock const DEFAULT_PH_GLOBAL_TIME_KEY[] = "time";
+stock const DEFAULT_PH_GLOBAL_DATETIME_KEY[] = "datetime";
+stock const DEFAULT_PH_GLOBAL_PLAYERS_COUNT_KEY[] = "players-count";
+stock const DEFAULT_PH_GLOBAL_MAX_PLAYERS_COUNT_KEY[] = "max-players-count";
 
 stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
 stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
-#define DEFAULT_PH_PLAYER_AUTHID_MAX_LEN 32
 
 enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
 
@@ -1854,6 +1861,15 @@ stock PCPH_Group_RegKey(const T_PHGroup:group, const key[], const callback[]) {
  */
 stock PCPH_Gl_RegKey(const key[], const callback[]) {
     PCPH_Group_RegKey(PCPH_GetGlobalGroup(), key, callback);
+}
+
+/**
+ * Регистрация ключа в глобальной группе с одновременной установкой значения.
+ */
+stock PCPH_Gl_ConstKey(const key[], const value[]) {
+    new T_PHGroup:group = PCPH_GetGlobalGroup();
+    PCPH_Group_RegisterKey(group, key);
+    PCPH_Set(group, key, value);
 }
 
 // Cvars
