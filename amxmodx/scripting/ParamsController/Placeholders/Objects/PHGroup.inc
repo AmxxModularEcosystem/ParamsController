@@ -47,6 +47,9 @@ T_PHGroup:PHGroup_Construct(const prefix[]) {
 
     if (prefix[0] != 0) {
         TrieSetCell(PHGroupsMap, prefix, group);
+        log_amx("[INFO] PH group registered: prefix='%s'", prefix);
+    } else {
+        log_amx("[INFO] PH global group registered");
     }
 
     return group;
