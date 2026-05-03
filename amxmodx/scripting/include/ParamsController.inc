@@ -1537,6 +1537,9 @@ stock const DEFAULT_PH_GLOBAL_MAX_PLAYERS_COUNT_KEY[] = "max-players-count";
 
 stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
 stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
+stock const DEFAULT_PH_PLAYER_NAME_KEY[] = "name";
+stock const DEFAULT_PH_PLAYER_IP_KEY[] = "ip";
+stock const DEFAULT_PH_PLAYER_USERID_KEY[] = "userid";
 
 enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
 
