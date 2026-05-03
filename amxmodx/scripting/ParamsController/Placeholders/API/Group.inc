@@ -3,11 +3,11 @@
 #include "ParamsController/Placeholders/Objects/PHGroup"
 
 API_PH_Group_Register() {
-    register_native("ParamsController_PH_RegisterGroup", "@API_PH_RegisterGroup");
-    register_native("ParamsController_PH_FindGroup", "@API_PH_FindGroup");
-    register_native("ParamsController_PH_GetGlobalGroup", "@API_PH_GetGlobalGroup");
-    register_native("ParamsController_PH_PushContext", "@API_PH_PushContext");
-    register_native("ParamsController_PH_PopContext", "@API_PH_PopContext");
+    register_native("PCPH_RegisterGroup", "@API_PH_RegisterGroup");
+    register_native("PCPH_FindGroup", "@API_PH_FindGroup");
+    register_native("PCPH_GetGlobalGroup", "@API_PH_GetGlobalGroup");
+    register_native("PCPH_Group_PushContext", "@API_PH_PushContext");
+    register_native("PCPH_Group_PopContext", "@API_PH_PopContext");
 }
 
 T_PHGroup:@API_PH_RegisterGroup() {
@@ -53,12 +53,12 @@ T_PHGroup:@API_PH_GetGlobalGroup() {
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
-    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
+    static contextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, contextKey, charsmax(contextKey));
 
-    PHGroup_PushContext(hGroup, sContextKey);
+    PHGroup_PushContext(group, contextKey);
 }
 
 @API_PH_PopContext() {
@@ -66,7 +66,7 @@ T_PHGroup:@API_PH_GetGlobalGroup() {
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    PHGroup_PopContext(hGroup);
+    PHGroup_PopContext(group);
 }

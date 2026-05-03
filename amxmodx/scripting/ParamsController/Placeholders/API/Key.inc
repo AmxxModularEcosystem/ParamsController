@@ -3,11 +3,11 @@
 #include "ParamsController/Placeholders/Objects/PHGroup"
 
 API_PH_Key_Register() {
-    register_native("ParamsController_PH_RegisterGroupKey", "@API_PH_RegisterGroupKey");
-    register_native("ParamsController_PH_SetGroupKeyCallback", "@API_PH_SetGroupKeyCallback");
-    register_native("ParamsController_PH_Set", "@API_PH_Set");
-    register_native("ParamsController_PH_SetInt", "@API_PH_SetInt");
-    register_native("ParamsController_PH_SetFloat", "@API_PH_SetFloat");
+    register_native("PCPH_Group_RegisterKey", "@API_PH_RegisterGroupKey");
+    register_native("PCPH_Group_SetKeyCallback", "@API_PH_SetGroupKeyCallback");
+    register_native("PCPH_SetForStr", "@API_PH_SetForStr");
+    register_native("PCPH_SetIntForStr", "@API_PH_SetIntForStr");
+    register_native("PCPH_SetFloatForStr", "@API_PH_SetFloatForStr");
 }
 
 @API_PH_RegisterGroupKey() {
@@ -15,12 +15,12 @@ API_PH_Key_Register() {
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sKey[PH_KEY_MAX_LEN];
-    get_string(Arg_Key, sKey, charsmax(sKey));
+    static key[PH_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    PHGroup_RegisterKey(hGroup, sKey);
+    PHGroup_RegisterKey(group, key);
 }
 
 @API_PH_SetGroupKeyCallback(const pluginIndex) {
@@ -28,70 +28,70 @@ API_PH_Key_Register() {
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sKey[PH_KEY_MAX_LEN];
-    get_string(Arg_Key, sKey, charsmax(sKey));
+    static key[PH_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    static sCallback[PH_CALLBACK_MAX_LEN];
-    get_string(Arg_Callback, sCallback, charsmax(sCallback));
+    static callback[PH_CALLBACK_MAX_LEN];
+    get_string(Arg_Callback, callback, charsmax(callback));
 
-    PHGroup_SetKeyCallback(hGroup, sKey, sCallback, pluginIndex);
+    PHGroup_SetKeyCallback(group, key, callback, pluginIndex);
 }
 
-@API_PH_Set() {
+@API_PH_SetForStr() {
     enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sKey[PH_KEY_MAX_LEN];
-    get_string(Arg_Key, sKey, charsmax(sKey));
+    static key[PH_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
-    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
+    static contextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, contextKey, charsmax(contextKey));
 
-    static sValue[PH_VALUE_MAX_LEN];
-    get_string(Arg_Value, sValue, charsmax(sValue));
+    static value[PH_VALUE_MAX_LEN];
+    get_string(Arg_Value, value, charsmax(value));
 
-    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
+    PHGroup_SetValue(group, key, contextKey, value);
 }
 
-@API_PH_SetInt() {
+@API_PH_SetIntForStr() {
     enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sKey[PH_KEY_MAX_LEN];
-    get_string(Arg_Key, sKey, charsmax(sKey));
+    static key[PH_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
-    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
+    static contextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, contextKey, charsmax(contextKey));
 
-    static sValue[PH_VALUE_MAX_LEN];
-    num_to_str(get_param(Arg_Value), sValue, charsmax(sValue));
+    static value[PH_VALUE_MAX_LEN];
+    num_to_str(get_param(Arg_Value), value, charsmax(value));
 
-    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
+    PHGroup_SetValue(group, key, contextKey, value);
 }
 
-@API_PH_SetFloat() {
+@API_PH_SetFloatForStr() {
     enum {Arg_Group = 1, Arg_Key, Arg_ContextKey, Arg_Value}
 
     API_CheckPluginInited();
 
-    new T_PHGroup:hGroup = T_PHGroup:get_param(Arg_Group);
+    new T_PHGroup:group = T_PHGroup:get_param(Arg_Group);
 
-    static sKey[PH_KEY_MAX_LEN];
-    get_string(Arg_Key, sKey, charsmax(sKey));
+    static key[PH_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    static sContextKey[PH_CONTEXT_KEY_MAX_LEN];
-    get_string(Arg_ContextKey, sContextKey, charsmax(sContextKey));
+    static contextKey[PH_CONTEXT_KEY_MAX_LEN];
+    get_string(Arg_ContextKey, contextKey, charsmax(contextKey));
 
-    static sValue[PH_VALUE_MAX_LEN];
-    format(sValue, charsmax(sValue), "%.2f", get_param_f(Arg_Value));
+    static value[PH_VALUE_MAX_LEN];
+    format(value, charsmax(value), "%.2f", get_param_f(Arg_Value));
 
-    PHGroup_SetValue(hGroup, sKey, sContextKey, sValue);
+    PHGroup_SetValue(group, key, contextKey, value);
 }

@@ -2,11 +2,11 @@
 #include <ParamsController>
 
 DefaultObjects_PH_Global_Register() {
-    new T_PHGroup:hGlobal = ParamsController_PH_GetGlobalGroup();
+    new T_PHGroup:group = PCPH_GetGlobalGroup();
 
-    ParamsController_PH_RegisterGroupKey(hGlobal, DEFAULT_PH_GLOBAL_MAP_KEY);
+    PCPH_Group_RegisterKey(group, DEFAULT_PH_GLOBAL_MAP_KEY);
 
     static sMap[64];
     get_mapname(sMap, charsmax(sMap));
-    ParamsController_PH_Set(hGlobal, DEFAULT_PH_GLOBAL_MAP_KEY, "", sMap);
+    PCPH_Set(group, DEFAULT_PH_GLOBAL_MAP_KEY, sMap);
 }

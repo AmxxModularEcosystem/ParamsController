@@ -1,14 +1,14 @@
 #include <amxmodx>
 #include <ParamsController>
 
-static T_PHGroup:g_hPlayerGroup = Invalid_PHGroup;
+static T_PHGroup:playerGroup = Invalid_PHGroup;
 
 DefaultObjects_PH_Player_Register() {
-    g_hPlayerGroup = ParamsController_PH_RegisterGroup(DEFAULT_PH_PLAYER_GROUP_PREFIX);
+    playerGroup = PCPH_RegisterGroup(DEFAULT_PH_PLAYER_GROUP_PREFIX);
 
-    ParamsController_PH_RegisterGroupKey(g_hPlayerGroup, DEFAULT_PH_PLAYER_AUTHID_KEY);
+    PCPH_Group_RegisterKey(playerGroup, DEFAULT_PH_PLAYER_AUTHID_KEY);
 }
 
-DefaultObjects_PH_Player_OnClientAuth(const playerIndex, const sAuthID[]) {
-    ParamsController_PH_SetForInt(g_hPlayerGroup, DEFAULT_PH_PLAYER_AUTHID_KEY, playerIndex, sAuthID);
+DefaultObjects_PH_Player_OnClientAuth(const playerIndex, const authId[]) {
+    PCPH_SetForInt(playerGroup, DEFAULT_PH_PLAYER_AUTHID_KEY, playerIndex, authId);
 }

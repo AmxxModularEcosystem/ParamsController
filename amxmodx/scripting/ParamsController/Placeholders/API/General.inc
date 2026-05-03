@@ -3,10 +3,10 @@
 #include "ParamsController/Placeholders/Objects/PHGroup"
 
 API_PH_General_Register() {
-    register_native("ParamsController_PH_Format", "@API_PH_Format");
-    register_native("ParamsController_PH_SetValue", "@API_PH_SetValue");
-    register_native("ParamsController_PH_SetIntValue", "@API_PH_SetIntValue");
-    register_native("ParamsController_PH_SetFloatValue", "@API_PH_SetFloatValue");
+    register_native("PCPH_Format", "@API_PH_Format");
+    register_native("PCPH_Cb_Set", "@API_PH_Cb_Set");
+    register_native("PCPH_Cb_SetInt", "@API_PH_Cb_SetInt");
+    register_native("PCPH_Cb_SetFloat", "@API_PH_Cb_SetFloat");
 }
 
 @API_PH_Format() {
@@ -14,16 +14,16 @@ API_PH_General_Register() {
 
     API_CheckPluginInited();
 
-    static formatStr[PH_FORMAT_MAX_LEN];
-    get_string(Arg_Format, formatStr, charsmax(formatStr));
+    static str[PH_FORMAT_MAX_LEN];
+    get_string(Arg_Format, str, charsmax(str));
 
     static out[PH_FORMAT_MAX_LEN];
-    PHGroup_FormatString(formatStr, out, charsmax(out));
+    PHGroup_FormatString(str, out, charsmax(out));
 
     set_string(Arg_Out, out, get_param(Arg_OutLen));
 }
 
-@API_PH_SetValue() {
+@API_PH_Cb_Set() {
     enum {Arg_Value = 1}
 
     API_CheckPluginInited();
@@ -35,7 +35,7 @@ API_PH_General_Register() {
     PHGroup_SetCurrentValue(value);
 }
 
-@API_PH_SetIntValue() {
+@API_PH_Cb_SetInt() {
     enum {Arg_Value = 1}
 
     API_CheckPluginInited();
@@ -47,7 +47,7 @@ API_PH_General_Register() {
     PHGroup_SetCurrentValue(value);
 }
 
-@API_PH_SetFloatValue() {
+@API_PH_Cb_SetFloat() {
     enum {Arg_Value = 1}
 
     API_CheckPluginInited();

@@ -37,7 +37,7 @@ PluginInit() {
     Forwards_RegAndCall("ParamsController_OnRegisterTypes", ET_IGNORE);
 
     // Тут регать группы и ключи плейсхолдеров
-    Forwards_RegAndCall("ParamsController_PH_OnRegisterGroups", ET_IGNORE);
+    Forwards_RegAndCall("PCPH_OnRegisterGroups", ET_IGNORE);
 
     register_srvcmd("params_controller_types", "@SrvCmd_Types");
 
