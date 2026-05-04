@@ -12,7 +12,7 @@ DefaultObjects_ParamType_WeekDay_Register() {
 
 bool:@DefaultObjects_ParamType_WeekDay_OnRead(const JSON:valueJson) {
     static str[PARAM_SHORT_STRING_MAX_LEN];
-    json_get_string(valueJson, str, charsmax(str));
+    PCSingle_String(valueJson, str, charsmax(str));
 
     new res;
     if (TrieGetCell(WeekDaysMap, str, res)) {

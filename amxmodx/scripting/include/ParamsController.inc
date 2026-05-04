@@ -46,6 +46,30 @@ stock const PARAMS_CONTROLLER_TYPE_TAG_DELIMITER[] = ":";
 enum T_Param { Invalid_Param = INVALID_HANDLE }
 enum T_ParamType { Invalid_ParamType = INVALID_HANDLE }
 
+stock const DEFAULT_PH_GLOBAL_REAL_MAP_KEY[] = "real-map";
+stock const DEFAULT_PH_GLOBAL_MAP_KEY[] = "map";
+stock const DEFAULT_PH_GLOBAL_SERVER_NAME_KEY[] = "server-name";
+stock const DEFAULT_PH_GLOBAL_SERVER_IP_KEY[] = "server-ip";
+stock const DEFAULT_PH_GLOBAL_DATE_KEY[] = "date";
+stock const DEFAULT_PH_GLOBAL_TIME_KEY[] = "time";
+stock const DEFAULT_PH_GLOBAL_DATETIME_KEY[] = "datetime";
+stock const DEFAULT_PH_GLOBAL_PLAYERS_COUNT_KEY[] = "players-count";
+stock const DEFAULT_PH_GLOBAL_MAX_PLAYERS_COUNT_KEY[] = "max-players-count";
+
+stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
+stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
+stock const DEFAULT_PH_PLAYER_NAME_KEY[] = "name";
+stock const DEFAULT_PH_PLAYER_IP_KEY[] = "ip";
+stock const DEFAULT_PH_PLAYER_USERID_KEY[] = "userid";
+
+enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
+
+/**
+ * Тип хендлера скомпилированного шаблона плейсхолдеров.
+ * Создаётся через PCPH_CompileTemplate, уничтожается через PCPH_DestroyTemplate.
+ */
+enum T_PHTemplate { Invalid_PHTemplate = INVALID_HANDLE }
+
 enum _:E_NativeParam {
     ParamArg_sKey,
     ParamArg_sParamTypeName,
@@ -1545,24 +1569,6 @@ stock PCJSon_TraceToString(const Array:trace, const bool:reverse = false) {
 
 // --- Default placeholders ---
 
-stock const DEFAULT_PH_GLOBAL_REAL_MAP_KEY[] = "real-map";
-stock const DEFAULT_PH_GLOBAL_MAP_KEY[] = "map";
-stock const DEFAULT_PH_GLOBAL_SERVER_NAME_KEY[] = "server-name";
-stock const DEFAULT_PH_GLOBAL_SERVER_IP_KEY[] = "server-ip";
-stock const DEFAULT_PH_GLOBAL_DATE_KEY[] = "date";
-stock const DEFAULT_PH_GLOBAL_TIME_KEY[] = "time";
-stock const DEFAULT_PH_GLOBAL_DATETIME_KEY[] = "datetime";
-stock const DEFAULT_PH_GLOBAL_PLAYERS_COUNT_KEY[] = "players-count";
-stock const DEFAULT_PH_GLOBAL_MAX_PLAYERS_COUNT_KEY[] = "max-players-count";
-
-stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
-stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
-stock const DEFAULT_PH_PLAYER_NAME_KEY[] = "name";
-stock const DEFAULT_PH_PLAYER_IP_KEY[] = "ip";
-stock const DEFAULT_PH_PLAYER_USERID_KEY[] = "userid";
-
-enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
-
 /**
  * Вызывается когда контроллер готов к регистрации групп и ключей плейсхолдеров.
  * Вызывается до форварда *_OnInited.
@@ -1796,12 +1802,6 @@ stock PCPH_SetFloat(const T_PHGroup:group, const key[], const Float:value) {
  * @noreturn
  */
 native PCPH_Format(out[], const outLen, const format[]);
-
-/**
- * Тип хендлера скомпилированного шаблона плейсхолдеров.
- * Создаётся через PCPH_CompileTemplate, уничтожается через PCPH_DestroyTemplate.
- */
-enum T_PHTemplate { Invalid_PHTemplate = INVALID_HANDLE }
 
 /**
  * Компилирует строку с плейсхолдерами в предварительно разобранный шаблон.

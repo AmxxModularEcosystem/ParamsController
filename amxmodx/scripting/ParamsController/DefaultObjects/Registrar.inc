@@ -54,8 +54,10 @@ DefaultObjects_OnClientAuth(const playerIndex, const authId[]) {
 
 DefaultObjects_OnClientPutInServer(const playerIndex) {
     DefaultObjects_PH_Global_OnClientPutInServer(playerIndex);
+    DefaultObjects_PH_Player_OnClientPutInServer(playerIndex);
 }
 
 DefaultObjects_OnClientDisconnected(const playerIndex) {
     DefaultObjects_PH_Global_OnClientDisconnected(playerIndex);
+    DefaultObjects_PH_Player_OnClientDisconnected(playerIndex);
 }

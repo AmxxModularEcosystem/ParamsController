@@ -81,10 +81,11 @@ T_PHGroup:PHGroup_ConstructProxy(const prefix[], const T_PHGroup:sourceGroup) {
     new T_PHGroup:group = T_PHGroup:ArrayPushArray(PHGroups, groupData);
     TrieSetCell(PHGroupsMap, prefix, group);
 
-    log_amx("[INFO] PH proxy group registered: prefix='%s' -> source='%s'",
-        prefix,
-        srcData[PHGroup_Prefix][0] != EOS ? srcData[PHGroup_Prefix] : "(global)"
-    );
+    if (srcData[PHGroup_Prefix][0] != EOS) {
+        log_amx("[INFO] PH proxy group registered: prefix='%s' -> source='%s'", prefix, srcData[PHGroup_Prefix]);
+    } else {
+        log_amx("[INFO] PH proxy group registered: prefix='%s' -> source='(global)'", prefix);
+    }
 
     return group;
 }
