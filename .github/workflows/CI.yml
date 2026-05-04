@@ -57,7 +57,6 @@ jobs:
         working-directory: amxmodx/scripting/
         env:
           REAPI_INCLUDE: ${{ env.REAPI_INCLUDE_PATH }}
-          PARAMS_CONRTOLLER_INCLUDE: ${{ env.PARAMS_CONRTOLLER_INCLUDE_PATH }}
         run: |
           compile() {
             sourcefile=$1
@@ -69,8 +68,7 @@ jobs:
             echo -n "Compiling $sourcefile ... "
             amxxpc $sourcefile -o"$output_path" \
               -i"include" \
-              -i"$REAPI_INCLUDE" \
-              -i"$PARAMS_CONRTOLLER_INCLUDE"
+              -i"$REAPI_INCLUDE"
           }
           export -f compile
 

@@ -14,7 +14,7 @@ bool:@DefaultObjects_ParamType_Time_OnRead(const JSON:valueJson) {
         }
         case JSONString: {
             static str[PARAM_SHORT_STRING_MAX_LEN];
-            json_get_string(valueJson, str, charsmax(str));
+            PCSingle_String(valueJson, str, charsmax(str));
             
             new parts[3][3];
             if (explode_string(str, ":", parts, 3, 3) > 3) {

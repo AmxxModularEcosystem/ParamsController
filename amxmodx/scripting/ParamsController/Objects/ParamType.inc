@@ -88,38 +88,38 @@ enum _:S_CurrentParam {
     Trie:CurrentParam_Params,
     CurrentParam_Name[PARAM_KEY_MAX_LEN],
 }
-new Stack:g_stCurrentParams = Invalid_Stack;
-new Trie:g_tCurrentParams = Invalid_Trie;
-new g_sCurrentParamName[PARAM_KEY_MAX_LEN] = "";
+new Stack:CurrentParamsStack = Invalid_Stack;
+new Trie:CurrentParams = Invalid_Trie;
+new CurrentParamName[PARAM_KEY_MAX_LEN] = "";
 
-static PushCurrentParam(const Trie:tParams, const sParamName[]) {
-    if (g_stCurrentParams == Invalid_Stack) {
-        g_stCurrentParams = CreateStack(S_CurrentParam);
+static PushCurrentParam(const Trie:params, const paramName[]) {
+    if (CurrentParamsStack == Invalid_Stack) {
+        CurrentParamsStack = CreateStack(S_CurrentParam);
     }
 
-    if (g_tCurrentParams != Invalid_Trie) {
-        new CurrentParam[S_CurrentParam];
-        copy(CurrentParam[CurrentParam_Name], charsmax(CurrentParam[CurrentParam_Name]), g_sCurrentParamName);
-        CurrentParam[CurrentParam_Params] = g_tCurrentParams;
-        PushStackArray(g_stCurrentParams, CurrentParam);
+    if (CurrentParams != Invalid_Trie) {
+        new entry[S_CurrentParam];
+        copy(entry[CurrentParam_Name], charsmax(entry[CurrentParam_Name]), CurrentParamName);
+        entry[CurrentParam_Params] = CurrentParams;
+        PushStackArray(CurrentParamsStack, entry);
     }
 
-    g_tCurrentParams = tParams;
-    copy(g_sCurrentParamName, charsmax(g_sCurrentParamName), sParamName);
+    CurrentParams = params;
+    copy(CurrentParamName, charsmax(CurrentParamName), paramName);
 }
 
 static PopCurrentParam() {
     if (
-        g_stCurrentParams != Invalid_Stack
-        && !IsStackEmpty(g_stCurrentParams)
+        CurrentParamsStack != Invalid_Stack
+        && !IsStackEmpty(CurrentParamsStack)
     ) {
-        new CurrentParam[S_CurrentParam];
-        PopStackArray(g_stCurrentParams, CurrentParam);
-        copy(g_sCurrentParamName, charsmax(g_sCurrentParamName), CurrentParam[CurrentParam_Name]);
-        g_tCurrentParams = CurrentParam[CurrentParam_Params];
+        new entry[S_CurrentParam];
+        PopStackArray(CurrentParamsStack, entry);
+        copy(CurrentParamName, charsmax(CurrentParamName), entry[CurrentParam_Name]);
+        CurrentParams = entry[CurrentParam_Params];
     } else {
-        g_tCurrentParams = Invalid_Trie;
-        g_sCurrentParamName[0] = 0;
+        CurrentParams = Invalid_Trie;
+        CurrentParamName[0] = 0;
     }
 }
 
@@ -137,13 +137,13 @@ bool:ParamType_Read(
     PCJson_HandleLinkedValue(valueJson, linkedJson);
     
     PushCurrentParam(p, key);
-    new bool:ret;
-    ExecuteForward(typeObject[ParamType_ReadCallback], ret, linkedJson, p, key, tag);
+    new bool:result;
+    ExecuteForward(typeObject[ParamType_ReadCallback], result, linkedJson, p, key, tag);
     PopCurrentParam();
 
     PCJson_FreeLinked(linkedJson, valueJson);
 
-    return ret;
+    return result;
 }
 
 ParamType_PrintListToConsole() {
@@ -158,6 +158,6 @@ ParamType_PrintListToConsole() {
     }
 }
 
-ParamType_GetTypeAndTag(const str[], sParamType[], const iParamTypeLen, sParamTag[], const iParamTagLen) {
-    return strtok2(str, sParamType, iParamTypeLen, sParamTag, iParamTagLen, PARAMS_CONTROLLER_TYPE_TAG_DELIMITER_CHAR);
+ParamType_GetTypeAndTag(const str[], paramType[], const paramTypeLen, paramTag[], const paramTagLen) {
+    return strtok2(str, paramType, paramTypeLen, paramTag, paramTagLen, PARAMS_CONTROLLER_TYPE_TAG_DELIMITER_CHAR);
 }

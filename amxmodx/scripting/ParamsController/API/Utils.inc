@@ -12,7 +12,7 @@ stock API_CheckPluginInited() {
 }
 
 stock API_CheckCurrentParams() {
-    if (g_tCurrentParams == Invalid_Trie) {
+    if (CurrentParams == Invalid_Trie) {
         abort(AMX_ERR_PARAMS, "Attempt to set param value outside the read callback.");
     }
 }

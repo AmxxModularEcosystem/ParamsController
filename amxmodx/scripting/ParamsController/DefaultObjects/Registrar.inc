@@ -18,8 +18,12 @@
 #include "ParamsController/DefaultObjects/ParamType/WeekDay"
 #include "ParamsController/DefaultObjects/ParamType/Flags"
 #include "ParamsController/DefaultObjects/ParamType/Regexp"
+#include "ParamsController/DefaultObjects/ParamType/PHTemplate"
 
-DefaultObjects_ParamType_Register() {
+#include "ParamsController/DefaultObjects/Placeholder/Global"
+#include "ParamsController/DefaultObjects/Placeholder/Player"
+
+DefaultObjects_Register() {
     DefaultObjects_ParamType_Boolean_Register();
     DefaultObjects_ParamType_Integer_Register();
     DefaultObjects_ParamType_Float_Register();
@@ -38,4 +42,22 @@ DefaultObjects_ParamType_Register() {
     DefaultObjects_ParamType_TimeInterval_Register();
     DefaultObjects_ParamType_WeekDay_Register();
     DefaultObjects_ParamType_Regexp_Register();
+    DefaultObjects_ParamType_PHTemplate_Register();
+
+    DefaultObjects_PH_Global_Register();
+    DefaultObjects_PH_Player_Register();
+}
+
+DefaultObjects_OnClientAuth(const playerIndex, const authId[]) {
+    DefaultObjects_PH_Player_OnClientAuth(playerIndex, authId);
+}
+
+DefaultObjects_OnClientPutInServer(const playerIndex) {
+    DefaultObjects_PH_Global_OnClientPutInServer(playerIndex);
+    DefaultObjects_PH_Player_OnClientPutInServer(playerIndex);
+}
+
+DefaultObjects_OnClientDisconnected(const playerIndex) {
+    DefaultObjects_PH_Global_OnClientDisconnected(playerIndex);
+    DefaultObjects_PH_Player_OnClientDisconnected(playerIndex);
 }

@@ -8,7 +8,7 @@ DefaultObjects_ParamType_File_Register() {
 
 bool:@DefaultObjects_ParamType_File_OnRead(const JSON:valueJson, const Trie:p, const key[]) {
     static path[PLATFORM_MAX_PATH];
-    json_get_string(valueJson, path, charsmax(path))
+    PCSingle_String(valueJson, path, charsmax(path))
 
     if (!file_exists(path)) {
         PCJson_LogForFile(valueJson, "WARNING", "File '%s' not found.", path);

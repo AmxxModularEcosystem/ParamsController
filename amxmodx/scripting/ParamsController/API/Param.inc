@@ -9,54 +9,53 @@ API_Param_Register() {
 }
 
 T_Param:@API_Param_Construct() {
-    enum {Arg_sKey = 1, Arg_sParamTypeName, Arg_bRequired}
+    enum {Arg_Key = 1, Arg_ParamTypeName, Arg_Required}
 
     API_CheckPluginInited();
 
-    new sKey[PARAM_KEY_MAX_LEN];
-    get_string(Arg_sKey, sKey, charsmax(sKey));
+    new key[PARAM_KEY_MAX_LEN];
+    get_string(Arg_Key, key, charsmax(key));
 
-    new sParamTypeName[PARAM_TYPE_NAME_MAX_LEN + PARAM_TYPE_TAG_MAX_LEN + 1];
-    get_string(Arg_sParamTypeName, sParamTypeName, charsmax(sParamTypeName));
-    
-    new bool:bRequired = !!get_param(Arg_bRequired);
+    new paramTypeName[PARAM_TYPE_NAME_MAX_LEN + PARAM_TYPE_TAG_MAX_LEN + 1];
+    get_string(Arg_ParamTypeName, paramTypeName, charsmax(paramTypeName));
 
+    new bool:required = !!get_param(Arg_Required);
 
-    new sParamType[PARAM_TYPE_NAME_MAX_LEN], sParamTag[PARAM_TYPE_TAG_MAX_LEN];
-    ParamType_GetTypeAndTag(sParamTypeName,
-        sParamType, charsmax(sParamType),
-        sParamTag, charsmax(sParamTag)
+    new typeName[PARAM_TYPE_NAME_MAX_LEN], paramTag[PARAM_TYPE_TAG_MAX_LEN];
+    ParamType_GetTypeAndTag(paramTypeName,
+        typeName, charsmax(typeName),
+        paramTag, charsmax(paramTag)
     );
-    new T_ParamType:iParamType = ParamType_Find(sParamType, .orFail = true);
+    new T_ParamType:paramType = ParamType_Find(typeName, .orFail = true);
 
-    return Param_Construct(sKey, iParamType, bRequired, sParamTag);
+    return Param_Construct(key, paramType, required, paramTag);
 }
 
-// native Trie:ParamsController_Param_ReadList(const Array:aParams, const JSON:jObj, &Trie:tAppend = Invalid_Trie, &E_ParamsReadErrorType:iErrType, sErrParamName[], const iErrParamNameLen = 0);
+// native Trie:ParamsController_Param_ReadList(const Array:params, const JSON:objectJson, &Trie:append = Invalid_Trie, &E_ParamsReadErrorType:errType, errParamName[], const errParamNameLen = 0);
 Trie:@API_Param_ReadList() {
-    enum {Arg_aParams = 1, Arg_jObj, Arg_tAppend, Arg_iErrType, Arg_sErrParamName, Arg_iErrParamNameLen}
+    enum {Arg_Params = 1, Arg_ObjectJson, Arg_Append, Arg_ErrType, Arg_ErrParamName, Arg_ErrParamNameLen}
 
     API_CheckPluginInited();
 
-    new Array:aParams = Array:get_param(Arg_aParams);
-    new JSON:jObj = JSON:get_param(Arg_jObj);
-    new Trie:tAppend = Trie:get_param_byref(Arg_tAppend);
-    new E_ParamsReadErrorType:iErrType = E_ParamsReadErrorType:get_param_byref(Arg_iErrType);
-    new sErrParamName[PARAM_KEY_MAX_LEN];
-    get_string(Arg_sErrParamName, sErrParamName, charsmax(sErrParamName));
-    new iErrParamNameLen = get_param(Arg_iErrParamNameLen);
+    new Array:params = Array:get_param(Arg_Params);
+    new JSON:objectJson = JSON:get_param(Arg_ObjectJson);
+    new Trie:append = Trie:get_param_byref(Arg_Append);
+    new E_ParamsReadErrorType:errType = E_ParamsReadErrorType:get_param_byref(Arg_ErrType);
+    new errParamName[PARAM_KEY_MAX_LEN];
+    get_string(Arg_ErrParamName, errParamName, charsmax(errParamName));
+    new errParamNameLen = get_param(Arg_ErrParamNameLen);
 
-    if (!json_is_object(jObj)) {
-        log_error(AMX_ERR_PARAMS, "[ERROR] Param jObj must be an object. (%d)", jObj);
+    if (!json_is_object(objectJson)) {
+        log_error(AMX_ERR_PARAMS, "[ERROR] Param objectJson must be an object. (%d)", objectJson);
         return Invalid_Trie;
     }
 
-    new Trie:tRet = Param_ReadList(aParams, jObj, tAppend, iErrType, sErrParamName, iErrParamNameLen);
+    new Trie:ret = Param_ReadList(params, objectJson, append, errType, errParamName, errParamNameLen);
 
-    set_param_byref(Arg_iErrType, _:iErrType);
-    set_string(Arg_sErrParamName, sErrParamName, iErrParamNameLen);
+    set_param_byref(Arg_ErrType, _:errType);
+    set_string(Arg_ErrParamName, errParamName, errParamNameLen);
 
-    return tRet;
+    return ret;
 }
 
 bool:@API_Param_Read() {

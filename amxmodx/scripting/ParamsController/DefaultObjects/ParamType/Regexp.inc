@@ -9,7 +9,7 @@ DefaultObjects_ParamType_Regexp_Register() {
 
 bool:@DefaultObjects_ParamType_Regexp_OnRead(const JSON:valueJson) {
     static pattern[PARAM_VALUE_MAX_LEN];
-    json_get_string(valueJson, pattern, charsmax(pattern));
+    PCSingle_String(valueJson, pattern, charsmax(pattern));
 
     static error[256];
     new ret;
