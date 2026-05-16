@@ -37,7 +37,7 @@ stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 stock const DEFAULT_PARAMS_REGEXP_NAME[] = "Regexp";
 stock const DEFAULT_PARAMS_PH_TEMPLATE_NAME[] = "PH-Template";
 
-#define PARAMS_CONTROLLER_VERSION "1.4.0"
+#define PARAMS_CONTROLLER_VERSION "1.4.1"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
