@@ -24,6 +24,7 @@ stock const DEFAULT_PARAMS_SHORT_STR_NAME[] = "ShortString";
 stock const DEFAULT_PARAMS_LONG_STR_NAME[] = "LongString";
 stock const DEFAULT_PARAMS_RGB_NAME[] = "RGB";
 stock const DEFAULT_PARAMS_MODEL_NAME[] = "Model";
+stock const DEFAULT_PARAMS_PLAYER_MODEL_NAME[] = "PlayerModel";
 stock const DEFAULT_PARAMS_SOUND_NAME[] = "Sound";
 stock const DEFAULT_PARAMS_RESOURCE_NAME[] = "Resource";
 stock const DEFAULT_PARAMS_FILE_NAME[] = "File";
@@ -757,6 +758,39 @@ stock PCSingle_Model(const JSON:valueJson, out[], const outLen, const def[] = ""
 stock PCSingle_iModel(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
     new out[PLATFORM_MAX_PATH];
     PCSingle_Str(valueJson, DEFAULT_PARAMS_MODEL_NAME, out, charsmax(out), def, orFailKey);
+    return out;
+}
+
+/**
+ * Чтение параметра типа "PlayerModel" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер для записи прочитанного значения.
+ * @param  outLen     Размер буфера.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Кол-во записанных в буфер ячеек.
+ */
+stock PCSingle_ObjPlayerModel(const JSON:objectJson, const key[], out[], const outLen, const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_PLAYER_MODEL_NAME, out, outLen, def, dotNot, orFail);
+}
+
+stock PCSingle_iObjPlayerModel(const JSON:objectJson, const key[], const def[] = "", const bool:dotNot = false, const bool:orFail = false) {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_ObjStr(objectJson, key, DEFAULT_PARAMS_PLAYER_MODEL_NAME, out, charsmax(out), def, dotNot, orFail);
+    return out;
+}
+
+stock PCSingle_PlayerModel(const JSON:valueJson, out[], const outLen, const def[] = "", const orFailKey[] = "") {
+    return PCSingle_Str(valueJson, DEFAULT_PARAMS_PLAYER_MODEL_NAME, out, outLen, def, orFailKey);
+}
+
+stock PCSingle_iPlayerModel(const JSON:valueJson, const def[] = "", const orFailKey[] = "") {
+    new out[PLATFORM_MAX_PATH];
+    PCSingle_Str(valueJson, DEFAULT_PARAMS_PLAYER_MODEL_NAME, out, charsmax(out), def, orFailKey);
     return out;
 }
 

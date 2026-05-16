@@ -8,6 +8,7 @@
 #include "ParamsController/DefaultObjects/ParamType/String"
 #include "ParamsController/DefaultObjects/ParamType/RGB"
 #include "ParamsController/DefaultObjects/ParamType/Model"
+#include "ParamsController/DefaultObjects/ParamType/PlayerModel"
 #include "ParamsController/DefaultObjects/ParamType/Sound"
 #include "ParamsController/DefaultObjects/ParamType/Resource"
 #include "ParamsController/DefaultObjects/ParamType/File"
@@ -27,6 +28,7 @@ DefaultObjects_ParamType_Register() {
 
     DefaultObjects_ParamType_RGB_Register();
     DefaultObjects_ParamType_Model_Register();
+    DefaultObjects_ParamType_PlayerModel_Register();
     DefaultObjects_ParamType_Sound_Register();
     DefaultObjects_ParamType_Resource_Register();
     DefaultObjects_ParamType_File_Register();
