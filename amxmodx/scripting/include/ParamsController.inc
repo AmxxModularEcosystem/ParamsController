@@ -36,7 +36,7 @@ stock const DEFAULT_PARAMS_WEEK_DAY_NAME[] = "WeekDay";
 stock const DEFAULT_PARAMS_FLAGS_NAME[] = "Flags";
 stock const DEFAULT_PARAMS_REGEXP_NAME[] = "Regexp";
 
-#define PARAMS_CONTROLLER_VERSION "1.4.1"
+#define PARAMS_CONTROLLER_VERSION "1.4.2"
 stock const PARAMS_CONTROLLER_LIBRARY[] = "PluginsController";
 stock const PARAMS_CONTROLLER_VERSION_CVAR_NAME[] = "params_controller_version";
 
@@ -976,6 +976,107 @@ stock Regex:PCSingle_ObjRegexp(const JSON:objectJson, const key[], const Regex:d
 
 stock Regex:PCSingle_Regexp(const JSON:valueJson, const Regex:def = Regex:REGEX_PATTERN_FAIL, const orFailKey[] = "") {
     return Regex:PCSingle_Cell(valueJson, DEFAULT_PARAMS_REGEXP_NAME, def, orFailKey);
+}
+
+/**
+ * Чтение параметра типа "RGB" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  out        Буфер [3] для записи компонент цвета (R, G, B).
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ */
+stock PCSingle_ObjRGB(const JSON:objectJson, const key[], out[3], const bool:dotNot = false, const bool:orFail = false) {
+    new Trie:p = PCSingle_ReadFromObject(objectJson, key, DEFAULT_PARAMS_RGB_NAME, dotNot, orFail);
+    if (p != Invalid_Trie) {
+        TrieGetArray(p, PCSINGLE_PARAM_KEY, out, 3);
+        TrieDestroy(p);
+    }
+}
+
+stock PCSingle_RGB(const JSON:valueJson, out[3], const orFailKey[] = "") {
+    new Trie:p = PCSingle_Read(valueJson, DEFAULT_PARAMS_RGB_NAME, orFailKey);
+    if (p != Invalid_Trie) {
+        TrieGetArray(p, PCSINGLE_PARAM_KEY, out, 3);
+        TrieDestroy(p);
+    }
+}
+
+/**
+ * Чтение параметра типа "TimeInterval" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Прочитанное значение в секундах.
+ */
+stock PCSingle_ObjTimeInterval(const JSON:objectJson, const key[], const def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_TIME_INTERVAL_NAME, def, dotNot, orFail);
+}
+
+stock PCSingle_TimeInterval(const JSON:valueJson, const def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, DEFAULT_PARAMS_TIME_INTERVAL_NAME, def, orFailKey);
+}
+
+/**
+ * Чтение параметра типа "Time" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Прочитанное значение (секунды от начала суток).
+ */
+stock PCSingle_ObjTime(const JSON:objectJson, const key[], const def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_TIME_NAME, def, dotNot, orFail);
+}
+
+stock PCSingle_Time(const JSON:valueJson, const def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, DEFAULT_PARAMS_TIME_NAME, def, orFailKey);
+}
+
+/**
+ * Чтение параметра типа "WeekDay" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Прочитанное значение (0=Вс, 1=Пн, ..., 6=Сб).
+ */
+stock PCSingle_ObjWeekDay(const JSON:objectJson, const key[], const def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_WEEK_DAY_NAME, def, dotNot, orFail);
+}
+
+stock PCSingle_WeekDay(const JSON:valueJson, const def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, DEFAULT_PARAMS_WEEK_DAY_NAME, def, orFailKey);
+}
+
+/**
+ * Чтение параметра типа "Flags" из JSON-обьекта.
+ *
+ * @param  objectJson JSON-обьект.
+ * @param  key        Ключ, значение по которому нужно прочитать.
+ * @param  def        Значение по умолчанию, в случае ошибки или отсутствия поля.
+ * @param  dotNot     Использовать ли вложенные ключи через точку.
+ * @param  orFail     Выбрасывать ли ошибку в случае её возникновения.
+ *
+ * @return Прочитанное значение (битовая маска флагов).
+ */
+stock PCSingle_ObjFlags(const JSON:objectJson, const key[], const def = 0, const bool:dotNot = false, const bool:orFail = false) {
+    return PCSingle_ObjCell(objectJson, key, DEFAULT_PARAMS_FLAGS_NAME, def, dotNot, orFail);
+}
+
+stock PCSingle_Flags(const JSON:valueJson, const def = 0, const orFailKey[] = "") {
+    return PCSingle_Cell(valueJson, DEFAULT_PARAMS_FLAGS_NAME, def, orFailKey);
 }
 
 // Getters
