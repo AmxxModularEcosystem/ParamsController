@@ -19,14 +19,21 @@ T_Param:@API_Param_Construct() {
     new paramTypeName[PARAM_TYPE_NAME_MAX_LEN + PARAM_TYPE_TAG_MAX_LEN + 1];
     get_string(Arg_ParamTypeName, paramTypeName, charsmax(paramTypeName));
 
-    new bool:required = !!get_param(Arg_Required);
-
-    new typeName[PARAM_TYPE_NAME_MAX_LEN], paramTag[PARAM_TYPE_TAG_MAX_LEN];
-    ParamType_GetTypeAndTag(paramTypeName,
-        typeName, charsmax(typeName),
-        paramTag, charsmax(paramTag)
+    new bool:bRequired = !!get_param(Arg_Required);
+    new sParamType[PARAM_TYPE_NAME_MAX_LEN], sParamTag[PARAM_TYPE_TAG_MAX_LEN];
+    ParamType_GetTypeAndTag(sParamTypeName,
+        sParamType, charsmax(sParamType),
+        sParamTag, charsmax(sParamTag)
     );
-    new T_ParamType:paramType = ParamType_Find(typeName, .orFail = true);
+    new T_ParamType:iParamType = ParamType_Find(sParamType, .orFail = false);
+
+    if (iParamType == Invalid_ParamType) {
+        if (bRequired) {
+            log_error(AMX_ERR_PARAMS, "Param '%s' is required, but type '%s' is not registered.", sKey, sParamType);
+        }
+
+        return Param_Construct(sKey, iParamType, bRequired, sParamTypeName);
+    }
 
     return Param_Construct(key, paramType, required, paramTag);
 }
