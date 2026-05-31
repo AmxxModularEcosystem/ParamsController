@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/AmxxModularEcosystem/amxx-builder/master/schema/amxbuild.schema.json
+
+name: ParamsController
+
+amxmodx:
+  version: "1.10.5428"
