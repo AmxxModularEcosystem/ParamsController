@@ -13,6 +13,7 @@ enum _:S_Param {
     T_ParamType:Param_Type,
     bool:Param_Required,
     Param_Tag[PARAM_TYPE_TAG_MAX_LEN],
+    bool:Param_IsUnknownType,
 }
 
 static Array:Params = Invalid_Array;
@@ -38,15 +39,11 @@ T_Param:Param_Construct(
 ) {
     new paramObject[S_Param];
 
-    if (type == Invalid_ParamType) {
-        abort(AMX_ERR_PARAMS, "Invalid param type handler (%d).", type);
-        return Invalid_Param;
-    }
-
     copy(paramObject[Param_Key], charsmax(paramObject[Param_Key]), key);
     paramObject[Param_Type] = type;
     paramObject[Param_Required] = isRequired;
     copy(paramObject[Param_Tag], charsmax(paramObject[Param_Tag]), tag);
+    paramObject[Param_IsUnknownType] = (type == Invalid_ParamType);
 
     if (IsStackEmpty(FreeParamHandlers)) {
         return T_Param:ArrayPushArray(Params, paramObject);
@@ -60,7 +57,7 @@ T_Param:Param_Construct(
 
 static Param_Get(const T_Param:param, paramObject[S_Param]) {
     ArrayGetArray(Params, _:param, paramObject);
-    if (paramObject[Param_Type] == Invalid_ParamType) {
+    if (paramObject[Param_Type] == Invalid_ParamType && !paramObject[Param_IsUnknownType]) {
         abort(AMX_ERR_PARAMS, "Invalid param type handler (%d).", paramObject[Param_Type]);
     }
 }
@@ -70,13 +67,18 @@ Param_iGetType(const T_Param:param) {
     Param_Get(param, paramObject);
 
     new typeName[PARAM_TYPE_NAME_MAX_LEN];
-    ParamType_GetName(paramObject[Param_Type], typeName, charsmax(typeName));
+    if (paramObject[Param_IsUnknownType]) {
+        copy(typeName, charsmax(typeName), paramObject[Param_Tag]);
+    } else {
+        ParamType_GetName(paramObject[Param_Type], typeName, charsmax(typeName));
+    }
 
     return typeName;
 }
 
 T_Param:Param_Free(&T_Param:param) {
     ArraySetCell(Params, _:param, Invalid_ParamType, Param_Type);
+    ArraySetCell(Params, _:param, false, Param_IsUnknownType);
     PushStackCell(FreeParamHandlers, param);
     return param = Invalid_Param;
 }
@@ -84,7 +86,11 @@ T_Param:Param_Free(&T_Param:param) {
 bool:Param_Read(const T_Param:param, const JSON:valueJson, const Trie:p) {
     new paramObject[S_Param];
     Param_Get(param, paramObject);
-    
+
+    if (paramObject[Param_IsUnknownType]) {
+        return false;
+    }
+
     return ParamType_Read(paramObject[Param_Type], valueJson, p, paramObject[Param_Key], paramObject[Param_Tag]);
 }
 
@@ -114,6 +120,15 @@ Trie:Param_ReadList(
             copy(sErrParamName, iErrParamNameLen, paramObject[Param_Key]);
         }
 
+        if (paramObject[Param_IsUnknownType]) {
+            if (paramObject[Param_Required]) {
+                iErrType = ParamsReadError_UnknownParamType;
+                return p;
+            }
+
+            continue;
+        }
+
         if (!json_object_has_value(objectJson, paramObject[Param_Key])) {
             if (paramObject[Param_Required]) {
                 iErrType = ParamsReadError_RequiredParamNotPresented;
@@ -136,6 +151,6 @@ Trie:Param_ReadList(
             abort(AMX_ERR_GENERAL, "Param type '%s' dont write value with key '%s' to trie.", ParamType_iGetName(paramObject[Param_Type]), paramObject[Param_Key]);
         }
     }
-    
+
     return p;
 }
