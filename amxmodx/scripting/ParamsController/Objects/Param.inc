@@ -126,6 +126,7 @@ Trie:Param_ReadList(
                 return p;
             }
 
+            PCJson_LogForFile(objectJson, "WARNING", "Param '%s' has unknown type '%s', skipping.", paramObject[Param_Key], paramObject[Param_Tag]);
             continue;
         }
 
