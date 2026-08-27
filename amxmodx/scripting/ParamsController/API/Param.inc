@@ -21,7 +21,7 @@ T_Param:@API_Param_Construct() {
 
     new bool:bRequired = !!get_param(Arg_Required);
     new sParamType[PARAM_TYPE_NAME_MAX_LEN], sParamTag[PARAM_TYPE_TAG_MAX_LEN];
-    ParamType_GetTypeAndTag(sParamTypeName,
+    ParamType_GetTypeAndTag(paramTypeName,
         sParamType, charsmax(sParamType),
         sParamTag, charsmax(sParamTag)
     );
@@ -29,13 +29,13 @@ T_Param:@API_Param_Construct() {
 
     if (iParamType == Invalid_ParamType) {
         if (bRequired) {
-            log_error(AMX_ERR_PARAMS, "Param '%s' is required, but type '%s' is not registered.", sKey, sParamType);
+            log_error(AMX_ERR_PARAMS, "Param '%s' is required, but type '%s' is not registered.", key, sParamType);
         }
 
-        return Param_Construct(sKey, iParamType, bRequired, sParamTypeName);
+        return Param_Construct(key, iParamType, bRequired, paramTypeName);
     }
 
-    return Param_Construct(key, paramType, required, paramTag);
+    return Param_Construct(key, iParamType, bRequired, sParamTag);
 }
 
 // native Trie:ParamsController_Param_ReadList(const Array:params, const JSON:objectJson, &Trie:append = Invalid_Trie, &E_ParamsReadErrorType:errType, errParamName[], const errParamNameLen = 0);

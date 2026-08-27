@@ -6,6 +6,7 @@
 #include <amxmodx>
 #include <ParamsController>
 #include "ParamsController/Placeholders/Objects/PHGroup"
+#include "ParamsController/Placeholders/PHParse"
 
 enum E_PHTemplatePartType {
     PHTemplatePartType_Text,
@@ -47,7 +48,6 @@ T_PHTemplate:PHTemplate_Compile(const src[]) {
     static text[PH_FORMAT_MAX_LEN];
     new textLen = 0;
 
-    static placeholder[PH_GROUP_PREFIX_MAX_LEN + PH_KEY_MAX_LEN + 2];
     static prefix[PH_GROUP_PREFIX_MAX_LEN];
     static key[PH_KEY_MAX_LEN];
 
@@ -60,12 +60,8 @@ T_PHTemplate:PHTemplate_Compile(const src[]) {
             continue;
         }
 
-        new closing = inPos + 1;
-        while (closing < srcLen && src[closing] != '}') {
-            ++closing;
-        }
-
-        if (closing >= srcLen) {
+        new closing;
+        if (!PHParse_FindClosing(src, srcLen, inPos, closing)) {
             // Незакрытая скобка — выводим как есть
             if (textLen < charsmax(text)) {
                 text[textLen++] = src[inPos];
@@ -79,37 +75,14 @@ T_PHTemplate:PHTemplate_Compile(const src[]) {
             textLen = 0;
         }
 
-        new placeholderLen = min(closing - inPos - 1, charsmax(placeholder));
-        for (new k = 0; k < placeholderLen; ++k) {
-            placeholder[k] = src[inPos + 1 + k];
-        }
-        placeholder[placeholderLen] = EOS;
+        new bool:isPlaceholder = PHParse_Placeholder(src, inPos, closing, prefix, charsmax(prefix), key, charsmax(key));
 
-        new colon = -1;
-        for (new k = 0; k < placeholderLen; ++k) {
-            if (placeholder[k] == ':') {
-                colon = k;
-                break;
-            }
+        new T_PHGroup:group = Invalid_PHGroup;
+        if (isPlaceholder) {
+            group = PHGroup_ResolveByPrefix(prefix);
         }
 
-        if (colon < 0) {
-            prefix[0] = EOS;
-            copy(key, charsmax(key), placeholder);
-        } else {
-            new prefixLen = min(colon, charsmax(prefix));
-            for (new k = 0; k < prefixLen; ++k) {
-                prefix[k] = placeholder[k];
-            }
-            prefix[prefixLen] = EOS;
-            copy(key, charsmax(key), placeholder[colon + 1]);
-        }
-
-        new T_PHGroup:group = (prefix[0] == EOS)
-            ? PHGroup_GetGlobal()
-            : PHGroup_Find(prefix);
-
-        if (group != Invalid_PHGroup && PHGroup_IsKeyRegistered(group, key)) {
+        if (isPlaceholder && group != Invalid_PHGroup && PHGroup_IsKeyRegistered(group, key)) {
             static partData[S_PHTemplatePart];
             partData[PHTemplatePart_Type] = PHTemplatePartType_Placeholder;
             copy(partData[PHTemplatePart_Content], charsmax(partData[PHTemplatePart_Content]), key);
@@ -117,11 +90,11 @@ T_PHTemplate:PHTemplate_Compile(const src[]) {
             partData[PHTemplatePart_Forward] = PHGroup_GetKeyForward(group, key);
             ArrayPushArray(parts, partData);
         } else {
-            // Неизвестный плейсхолдер — сохраняем как текст с фигурными скобками
-            text[0] = '{';
-            textLen = 1;
-            for (new k = 0; k < placeholderLen && textLen < charsmax(text); ++k) {
-                text[textLen++] = placeholder[k];
+            // Слишком длинный, неизвестная группа или незарегистрированный ключ —
+            // фиксируем как текст с фигурными скобками
+            text[textLen++] = '{';
+            for (new k = 0; k < closing - inPos - 1 && textLen < charsmax(text); ++k) {
+                text[textLen++] = src[inPos + 1 + k];
             }
             if (textLen < charsmax(text)) {
                 text[textLen++] = '}';

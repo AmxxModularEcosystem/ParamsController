@@ -1,14 +1,13 @@
 #include <amxmodx>
-#include <reapi>
 #include <ParamsController>
 
 DefaultObjects_PH_Global_Register() {
     new value[PH_VALUE_MAX_LEN];
     
-    rh_get_mapname(value, charsmax(value), MNT_SET);
+    get_mapname(value, charsmax(value));
     PCPH_Gl_ConstKey(DEFAULT_PH_GLOBAL_MAP_KEY, value);
     
-    rh_get_mapname(value, charsmax(value), MNT_TRUE);
+    get_mapname(value, charsmax(value));
     PCPH_Gl_ConstKey(DEFAULT_PH_GLOBAL_REAL_MAP_KEY, value);
     
     get_user_name(0, value, charsmax(value));

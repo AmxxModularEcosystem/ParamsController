@@ -122,7 +122,7 @@ Trie:Param_ReadList(
 
         if (paramObject[Param_IsUnknownType]) {
             if (paramObject[Param_Required]) {
-                iErrType = ParamsReadError_UnknownParamType;
+                errType = ParamsReadError_UnknownParamType;
                 return p;
             }
 

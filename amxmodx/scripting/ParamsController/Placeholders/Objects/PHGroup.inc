@@ -5,6 +5,7 @@
 
 #include <amxmodx>
 #include <ParamsController>
+#include "ParamsController/Placeholders/PHParse"
 
 enum _:S_PHGroup {
     PHGroup_Prefix[PH_GROUP_PREFIX_MAX_LEN],
@@ -22,6 +23,50 @@ static T_PHGroup:PHGlobalGroup = Invalid_PHGroup;
 static T_PHGroup:CurrentPHGroup = Invalid_PHGroup;
 static CurrentPHKey[PH_KEY_MAX_LEN];
 static CurrentPHContext[PH_CONTEXT_KEY_MAX_LEN];
+
+// Стек состояния текущего колбека. Позволяет вызывать PCPH_Format (и другие
+// колбеки) рекурсивно изнутри колбека ключа: после вложенного вызова состояние
+// внешнего колбека (группа/ключ/контекст) восстанавливается, и PCPH_Cb_Set* 
+// во внешнем колбеке продолжает работать с корректными значениями.
+enum _:S_PHCurrentCallback {
+    T_PHGroup:PHCurrentCallback_Group,
+    PHCurrentCallback_Key[PH_KEY_MAX_LEN],
+    PHCurrentCallback_Context[PH_CONTEXT_KEY_MAX_LEN],
+}
+static Stack:CurrentPHCallbacks = Invalid_Stack;
+
+static PHGroup_PushCurrentCallback(const T_PHGroup:group, const key[], const contextKey[]) {
+    if (CurrentPHCallbacks == Invalid_Stack) {
+        CurrentPHCallbacks = CreateStack(S_PHCurrentCallback);
+    }
+
+    new entry[S_PHCurrentCallback];
+    entry[PHCurrentCallback_Group] = CurrentPHGroup;
+    copy(entry[PHCurrentCallback_Key], charsmax(entry[PHCurrentCallback_Key]), CurrentPHKey);
+    copy(entry[PHCurrentCallback_Context], charsmax(entry[PHCurrentCallback_Context]), CurrentPHContext);
+    PushStackArray(CurrentPHCallbacks, entry);
+
+    CurrentPHGroup = group;
+    copy(CurrentPHKey, charsmax(CurrentPHKey), key);
+    copy(CurrentPHContext, charsmax(CurrentPHContext), contextKey);
+}
+
+static PHGroup_PopCurrentCallback() {
+    new entry[S_PHCurrentCallback];
+    if (
+        CurrentPHCallbacks != Invalid_Stack
+        && !IsStackEmpty(CurrentPHCallbacks)
+    ) {
+        PopStackArray(CurrentPHCallbacks, entry);
+        CurrentPHGroup = T_PHGroup:entry[PHCurrentCallback_Group];
+        copy(CurrentPHKey, charsmax(CurrentPHKey), entry[PHCurrentCallback_Key]);
+        copy(CurrentPHContext, charsmax(CurrentPHContext), entry[PHCurrentCallback_Context]);
+    } else {
+        CurrentPHGroup = Invalid_PHGroup;
+        CurrentPHKey[0] = EOS;
+        CurrentPHContext[0] = EOS;
+    }
+}
 
 PHGroup_Init() {
     if (PHGroups == Invalid_Array) {
@@ -98,6 +143,12 @@ T_PHGroup:PHGroup_Find(const prefix[]) {
 
 T_PHGroup:PHGroup_GetGlobal() {
     return PHGlobalGroup;
+}
+
+// Префикс → группа: пустой префикс — глобальная группа.
+// Общий хелпер для инлайн-форматирования и компиляции шаблонов.
+T_PHGroup:PHGroup_ResolveByPrefix(const prefix[]) {
+    return (prefix[0] == EOS) ? PHGlobalGroup : PHGroup_Find(prefix);
 }
 
 static PHGroup_Get(const T_PHGroup:group, groupData[S_PHGroup]) {
@@ -229,16 +280,12 @@ static PHGroup_CallCallback(const T_PHGroup:group, const key[], const contextKey
         return;
     }
 
-    CurrentPHGroup = group;
-    copy(CurrentPHKey, charsmax(CurrentPHKey), key);
-    copy(CurrentPHContext, charsmax(CurrentPHContext), contextKey);
+    PHGroup_PushCurrentCallback(group, key, contextKey);
 
     new ret;
     ExecuteForward(fwd, ret, key, contextKey);
 
-    CurrentPHGroup = Invalid_PHGroup;
-    CurrentPHKey[0] = EOS;
-    CurrentPHContext[0] = EOS;
+    PHGroup_PopCurrentCallback();
 }
 
 PHGroup_FormatString(const src[], out[], const outLen) {
@@ -256,55 +303,25 @@ PHGroup_FormatString(const src[], out[], const outLen) {
             continue;
         }
 
-        new closing = inPos + 1;
-        while (closing < srcLen && src[closing] != '}') {
-            ++closing;
-        }
-
-        if (closing >= srcLen) {
+        new closing;
+        if (!PHParse_FindClosing(src, srcLen, inPos, closing)) {
             // Незакрытая скобка — выводим как есть
             out[outPos++] = src[inPos++];
             continue;
         }
 
-        static placeholder[PH_GROUP_PREFIX_MAX_LEN + PH_KEY_MAX_LEN + 2];
-        new placeholderLen = min(closing - inPos - 1, charsmax(placeholder));
+        new prefix[PH_GROUP_PREFIX_MAX_LEN], key[PH_KEY_MAX_LEN];
+        new bool:isPlaceholder = PHParse_Placeholder(src, inPos, closing, prefix, charsmax(prefix), key, charsmax(key));
 
-        for (new k = 0; k < placeholderLen; ++k) {
-            placeholder[k] = src[inPos + 1 + k];
-        }
-        placeholder[placeholderLen] = 0;
-
-        static prefix[PH_GROUP_PREFIX_MAX_LEN];
-        static key[PH_KEY_MAX_LEN];
-
-        new colon = -1;
-        for (new k = 0; k < placeholderLen; ++k) {
-            if (placeholder[k] == ':') {
-                colon = k;
-                break;
-            }
+        new T_PHGroup:group = Invalid_PHGroup;
+        if (isPlaceholder) {
+            group = PHGroup_ResolveByPrefix(prefix);
         }
 
-        if (colon < 0) {
-            prefix[0] = 0;
-            copy(key, charsmax(key), placeholder);
-        } else {
-            new prefixLen = min(colon, charsmax(prefix));
-            for (new k = 0; k < prefixLen; ++k) {
-                prefix[k] = placeholder[k];
-            }
-            prefix[prefixLen] = 0;
-            copy(key, charsmax(key), placeholder[colon + 1]);
-        }
-
-        new T_PHGroup:group = (prefix[0] == 0)
-            ? PHGlobalGroup
-            : PHGroup_Find(prefix);
-
-        if (group != Invalid_PHGroup && PHGroup_IsKeyRegistered(group, key)) {
-            // Захватываем контекст до вызова колбека
-            static currentContext[PH_CONTEXT_KEY_MAX_LEN];
+        if (isPlaceholder && group != Invalid_PHGroup && PHGroup_IsKeyRegistered(group, key)) {
+            // Захватываем контекст до вызова колбека (локальный буфер — 
+            // вложенный вызов PCPH_Format из колбека не должен его затирать)
+            new currentContext[PH_CONTEXT_KEY_MAX_LEN];
             new groupData[S_PHGroup];
             PHGroup_Get(group, groupData);
             copy(currentContext, charsmax(currentContext), groupData[PHGroup_CurrentContext]);
@@ -319,10 +336,11 @@ PHGroup_FormatString(const src[], out[], const outLen) {
                 }
             }
         } else {
-            // Неизвестная группа или незарегистрированный ключ — сохраняем как есть
+            // Слишком длинный, неизвестная группа или незарегистрированный ключ —
+            // сохраняем как есть (литеральный текст с фигурными скобками)
             out[outPos++] = '{';
-            for (new k = 0; k < placeholderLen && outPos < outLen - 1; ++k) {
-                out[outPos++] = placeholder[k];
+            for (new k = 0; k < closing - inPos - 1 && outPos < outLen - 1; ++k) {
+                out[outPos++] = src[inPos + 1 + k];
             }
             if (outPos < outLen - 1) {
                 out[outPos++] = '}';
@@ -348,22 +366,18 @@ PHGroup_GetKeyForward(const T_PHGroup:group, const key[]) {
 // Вызывает колбек (если fwd != INVALID_HANDLE) и записывает текущее значение ключа в out.
 // Используется скомпилированными шаблонами: группа и форвард уже известны, контекст берётся в рантайме.
 bool:PHGroup_FillValue(const T_PHGroup:group, const key[], const fwd, out[], const outLen) {
-    static currentContext[PH_CONTEXT_KEY_MAX_LEN];
+    new currentContext[PH_CONTEXT_KEY_MAX_LEN];
     new groupData[S_PHGroup];
     PHGroup_Get(group, groupData);
     copy(currentContext, charsmax(currentContext), groupData[PHGroup_CurrentContext]);
 
     if (fwd != INVALID_HANDLE) {
-        CurrentPHGroup = group;
-        copy(CurrentPHKey, charsmax(CurrentPHKey), key);
-        copy(CurrentPHContext, charsmax(CurrentPHContext), currentContext);
+        PHGroup_PushCurrentCallback(group, key, currentContext);
 
         new ret;
         ExecuteForward(fwd, ret, key, currentContext);
 
-        CurrentPHGroup = Invalid_PHGroup;
-        CurrentPHKey[0] = EOS;
-        CurrentPHContext[0] = EOS;
+        PHGroup_PopCurrentCallback();
     }
 
     return PHGroup_GetValue(group, key, currentContext, out, outLen);

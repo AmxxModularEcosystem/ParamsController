@@ -1,5 +1,4 @@
 #include <amxmodx>
-#include <reapi>
 #include <ParamsController>
 
 static T_PHGroup:PlayerGroup = Invalid_PHGroup;
