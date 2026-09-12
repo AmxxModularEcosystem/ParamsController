@@ -9,8 +9,39 @@ skills:
   - dir: skills/param-types
     name: ParamsController param types
     description: >-
-      Встроенные типы параметров ParamsController со стороны настройки: допустимые
-      JSON-значения каждого типа, что попадает в Trie, теги (:index), ошибки чтения
-      и подводные камни. Покрывает Boolean, Integer, Float, ShortString, String,
-      LongString, RGB, Model, PlayerModel, Sound, Resource, File, Dir, ChatMessage,
-      Flags, Time, TimeInterval, WeekDay, Regexp.
+      Встроенные типы параметров ParamsController: допустимые JSON-значения,
+      что попадает в Trie, теги и геттер чтения для каждого типа. Только
+      специфика типов; общие механизмы контроллера здесь не описаны. Покрывает
+      Boolean, Integer, Float, ShortString, String, LongString, RGB, Model,
+      PlayerModel, Sound, Resource, File, Dir, ChatMessage, Flags, Time,
+      TimeInterval, WeekDay, Regexp.
+  - dir: skills/param-types-authoring
+    name: Plugin param types skill authoring
+    description: >-
+      Мета-скилл: как агенту описать скилл с типами параметров, которые плагин
+      регистрирует сам через ParamsController (ParamsController_OnRegisterTypes,
+      ParamsController_RegSimpleType, ParamsController_ParamType_Register).
+      Процедура поиска регистраций и хелперов чтения (своих у плагина или
+      стандартных PCGet_*/PCSingle_*), чтения колбеков, выписки контракта типа
+      (JSON-форматы, результат в Trie, теги, условия ошибки, прекеш) и сборки
+      составного скилла SKILL.md + references (включая групповые _<группа>.md)
+      с записью в skills: манифеста. Только про типы.
+  - dir: skills/param-type-registration
+    name: Param type registration
+    description: >-
+      Как плагину зарегистрировать собственный тип параметра в ParamsController:
+      ParamsController_OnRegisterTypes, ParamsController_RegSimpleType /
+      ParamsController_ParamType_Register + SetReadCallback, контракт колбека
+      чтения, запись значения в Trie, теги, условия ошибки, а также создание
+      хелперов чтения PCSingle_*/PCGet_* для своего типа. Триггеры: register
+      param type, custom param type, ParamsController_OnRegisterTypes,
+      PCSingle, PCGet helper.
+  - dir: skills/params-usage
+    name: Params usage
+    description: >-
+      Как читать параметры ParamsController в коде плагина: PCSingle_* как обёртки
+      над json_* для одиночных значений, регистрация параметров сущностей
+      (Param_Construct + Param_ReadList + PCGet_*), приём наборов через нативы
+      (ParamsController_Param_ListFromNativeParams, PCParam/PCParams). Триггеры:
+      PCSingle, PCGet, ParamsController_Param_Construct, Param_ReadList,
+      PCParam, consume params.
