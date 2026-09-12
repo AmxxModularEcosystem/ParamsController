@@ -4,3 +4,13 @@ name: ParamsController
 
 amxmodx:
   version: "1.10.5428"
+
+skills:
+  - dir: skills/param-types
+    name: ParamsController param types
+    description: >-
+      Встроенные типы параметров ParamsController со стороны настройки: допустимые
+      JSON-значения каждого типа, что попадает в Trie, теги (:index), ошибки чтения
+      и подводные камни. Покрывает Boolean, Integer, Float, ShortString, String,
+      LongString, RGB, Model, PlayerModel, Sound, Resource, File, Dir, ChatMessage,
+      Flags, Time, TimeInterval, WeekDay, Regexp.
