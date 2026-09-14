@@ -56,12 +56,34 @@ stock const DEFAULT_PH_GLOBAL_TIME_KEY[] = "time";
 stock const DEFAULT_PH_GLOBAL_DATETIME_KEY[] = "datetime";
 stock const DEFAULT_PH_GLOBAL_PLAYERS_COUNT_KEY[] = "players-count";
 stock const DEFAULT_PH_GLOBAL_MAX_PLAYERS_COUNT_KEY[] = "max-players-count";
+stock const DEFAULT_PH_GLOBAL_UPTIME_KEY[] = "uptime";
+stock const DEFAULT_PH_GLOBAL_NEXTMAP_KEY[] = "nextmap";
+stock const DEFAULT_PH_GLOBAL_TIME_LEFT_KEY[] = "time-left";
+stock const DEFAULT_PH_GLOBAL_GAMETIME_KEY[] = "gametime";
+stock const DEFAULT_PH_GLOBAL_MOD_KEY[] = "mod";
+stock const DEFAULT_PH_GLOBAL_AMXX_VERSION_KEY[] = "amx-version";
+stock const DEFAULT_PH_GLOBAL_ALIVE_COUNT_KEY[] = "alive-count";
+stock const DEFAULT_PH_GLOBAL_DEAD_COUNT_KEY[] = "dead-count";
+stock const DEFAULT_PH_GLOBAL_BOT_COUNT_KEY[] = "bot-count";
+stock const DEFAULT_PH_GLOBAL_HUMAN_COUNT_KEY[] = "human-count";
 
 stock const DEFAULT_PH_PLAYER_GROUP_PREFIX[] = "p";
 stock const DEFAULT_PH_PLAYER_AUTHID_KEY[] = "authid";
 stock const DEFAULT_PH_PLAYER_NAME_KEY[] = "name";
 stock const DEFAULT_PH_PLAYER_IP_KEY[] = "ip";
 stock const DEFAULT_PH_PLAYER_USERID_KEY[] = "userid";
+stock const DEFAULT_PH_PLAYER_HEALTH_KEY[] = "health";
+stock const DEFAULT_PH_PLAYER_ARMOR_KEY[] = "armor";
+stock const DEFAULT_PH_PLAYER_FRAGS_KEY[] = "frags";
+stock const DEFAULT_PH_PLAYER_PING_KEY[] = "ping";
+stock const DEFAULT_PH_PLAYER_CONNECT_TIME_KEY[] = "connect-time";
+stock const DEFAULT_PH_PLAYER_DEATHS_KEY[] = "deaths";
+stock const DEFAULT_PH_PLAYER_TEAM_KEY[] = "team";
+stock const DEFAULT_PH_PLAYER_TEAM_NAME_KEY[] = "team-name";
+stock const DEFAULT_PH_PLAYER_ALIVE_KEY[] = "alive";
+stock const DEFAULT_PH_PLAYER_BOT_KEY[] = "bot";
+stock const DEFAULT_PH_PLAYER_LOSS_KEY[] = "loss";
+stock const DEFAULT_PH_PLAYER_INDEX_KEY[] = "index";
 
 enum T_PHGroup { Invalid_PHGroup = INVALID_HANDLE }
 
