@@ -130,6 +130,16 @@ Trie:Param_ReadList(
             continue;
         }
 
+        if (paramObject[Param_IsUnknownType]) {
+            if (paramObject[Param_Required]) {
+                iErrType = ParamsReadError_UnknownParamType;
+                return p;
+            }
+
+            PCJson_LogForFile(objectJson, "WARNING", "Param '%s' has unknown type '%s', skipping.", paramObject[Param_Key], paramObject[Param_Tag]);
+            continue;
+        }
+
         if (!json_object_has_value(objectJson, paramObject[Param_Key])) {
             if (paramObject[Param_Required]) {
                 errType = ParamsReadError_RequiredParamNotPresented;
