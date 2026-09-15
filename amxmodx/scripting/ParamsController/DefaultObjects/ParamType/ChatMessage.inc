@@ -8,7 +8,7 @@ DefaultObjects_ParamType_ChatMessage_Register() {
 
 bool:@DefaultObjects_ParamType_ChatMessage_OnRead(const JSON:valueJson) {
     static str[PARAM_CHAT_MESSAGE_MAX_LEN];
-    json_get_string(valueJson, str, charsmax(str));
+    PCSingle_String(valueJson, str, charsmax(str));
     
     replace_all(str, charsmax(str), "^^1", "^1");
     replace_all(str, charsmax(str), "^^3", "^3");

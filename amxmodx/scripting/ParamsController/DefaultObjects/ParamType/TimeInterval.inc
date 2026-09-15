@@ -19,7 +19,7 @@ bool:@DefaultObjects_ParamType_TimeInterval_OnRead(const JSON:valueJson) {
         }
         case JSONString: {
             static str[PARAM_SHORT_STRING_MAX_LEN];
-            json_get_string(valueJson, str, charsmax(str));
+            PCSingle_String(valueJson, str, charsmax(str));
             
             // https://dev-cs.ru/threads/222/page-3#post-33411
             new t, k;

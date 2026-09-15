@@ -8,7 +8,7 @@ DefaultObjects_ParamType_Dir_Register() {
 
 bool:@DefaultObjects_ParamType_Dir_OnRead(const JSON:valueJson, const Trie:p, const key[]) {
     static path[PLATFORM_MAX_PATH];
-    json_get_string(valueJson, path, charsmax(path));
+    PCSingle_String(valueJson, path, charsmax(path));
 
     if (!dir_exists(path)) {
         PCJson_LogForFile(valueJson, "WARNING", "Dir '%s' not found.", path);

@@ -17,7 +17,7 @@ API_General_Register() {
     API_CheckPluginInited();
     API_CheckCurrentParams();
 
-    return TrieSetCell(g_tCurrentParams, g_sCurrentParamName, get_param(Arg_Cell));
+    return TrieSetCell(CurrentParams, CurrentParamName, get_param(Arg_Cell));
 }
 
 @API_SetString() {
@@ -29,5 +29,5 @@ API_General_Register() {
     static sString[PARAM_LONG_STRING_MAX_LEN];
     get_string(Arg_String, sString, charsmax(sString));
 
-    return TrieSetString(g_tCurrentParams, g_sCurrentParamName, sString);
+    return TrieSetString(CurrentParams, CurrentParamName, sString);
 }

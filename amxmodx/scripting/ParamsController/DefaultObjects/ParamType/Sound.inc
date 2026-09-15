@@ -8,7 +8,7 @@ DefaultObjects_ParamType_Sound_Register() {
 
 bool:@DefaultObjects_ParamType_Sound_OnRead(const JSON:valueJson, const Trie:p, const key[], const tag[]) {
     static path[PLATFORM_MAX_PATH];
-    json_get_string(valueJson, path, charsmax(path));
+    PCSingle_String(valueJson, path, charsmax(path));
 
     static fullPath[PLATFORM_MAX_PATH];
     formatex(fullPath, charsmax(fullPath), "sound/%s", path);

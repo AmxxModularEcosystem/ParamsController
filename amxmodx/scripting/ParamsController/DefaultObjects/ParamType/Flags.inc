@@ -8,7 +8,7 @@ DefaultObjects_ParamType_Flags_Register() {
 
 bool:@DefaultObjects_ParamType_Flags_OnRead(const JSON:valueJson) {
     static str[32];
-    json_get_string(valueJson, str, charsmax(str));
+    PCSingle_String(valueJson, str, charsmax(str));
     
     return ParamsController_SetCell(read_flags(str));
 }

@@ -4,6 +4,7 @@
 #include "ParamsController/Forwards"
 
 #include "ParamsController/Objects/Param"
+#include "ParamsController/Placeholders/Objects/PHGroup"
 #include "ParamsController/DefaultObjects/Registrar"
 
 public stock const PluginName[] = "Params Controller";
@@ -27,15 +28,46 @@ PluginInit() {
 
     Forwards_Init();
     Param_Init();
-    DefaultObjects_ParamType_Register();
+    PHGroup_Init();
+    DefaultObjects_Register();
 
-    // Тут регать типы
+    // Тут регать типы параметров
     Forwards_RegAndCall("ParamsController_OnRegisterTypes", ET_IGNORE);
+
+    // Тут регать группы и ключи плейсхолдеров
+    Forwards_RegAndCall("PCPH_OnRegisterGroups", ET_IGNORE);
+
+    // Тут регать прокси-группы (все обычные группы уже зарегистрированы)
+    Forwards_RegAndCall("PCPH_OnRegisterProxyGroups", ET_IGNORE);
 
     register_srvcmd("params_controller_types", "@SrvCmd_Types");
 
-    // После этого можно юзать типы
+    // После этого можно юзать типы и плейсхолдеры
     Forwards_RegAndCall("ParamsController_OnInited", ET_IGNORE);
+}
+
+public client_authorized(playerIndex, const authId[]) {
+    if (!IsPluginInited()) {
+        return;
+    }
+
+    DefaultObjects_OnClientAuth(playerIndex, authId);
+}
+
+public client_putinserver(playerIndex) {
+    if (!IsPluginInited()) {
+        return;
+    }
+    
+    DefaultObjects_OnClientPutInServer(playerIndex);
+}
+
+public client_disconnected(playerIndex) {
+    if (!IsPluginInited()) {
+        return;
+    }
+    
+    DefaultObjects_OnClientDisconnected(playerIndex);
 }
 
 @SrvCmd_Types() {
@@ -49,9 +81,15 @@ bool:IsPluginInited() {
 #include "ParamsController/API/General"
 #include "ParamsController/API/Param"
 #include "ParamsController/API/ParamType"
+#include "ParamsController/Placeholders/API/General"
+#include "ParamsController/Placeholders/API/Group"
+#include "ParamsController/Placeholders/API/Key"
 
 public plugin_natives() {
     API_General_Register();
     API_Param_Register();
     API_ParamType_Register();
+    API_PH_General_Register();
+    API_PH_Group_Register();
+    API_PH_Key_Register();
 }

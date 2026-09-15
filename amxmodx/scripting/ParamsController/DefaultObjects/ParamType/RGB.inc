@@ -38,7 +38,7 @@ bool:@DefaultObjects_ParamType_RGB_OnRead(const JSON:valueJson, const Trie:p, co
         }
     } else if (json_is_string(valueJson)) {
         static str[32], colorStr[3][8];
-        json_get_string(valueJson, str, charsmax(str));
+        PCSingle_String(valueJson, str, charsmax(str));
 
         if (contain(str, ",")) {
             explode_string(str, ",", colorStr, 3, charsmax(colorStr[]));
